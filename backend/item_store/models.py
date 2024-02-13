@@ -18,6 +18,7 @@ class Customer(AbstractUser):
     REQUIRED_FIELDS = ['email']
 
     class Meta:
+        
         verbose_name = "Customer"
         verbose_name_plural = "Customers"
 
