@@ -28,5 +28,3 @@ class ProductViewSet(viewsets.ViewSet):
     def create(self,request):
         pass
     
-    
-        
