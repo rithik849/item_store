@@ -12,6 +12,7 @@ class Customer(AbstractUser):
 
     username = models.TextField(max_length=50,unique=True)
     email = models.EmailField(max_length=100)
+    password = models.TextField(max_length=255)
     
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
