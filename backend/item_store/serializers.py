@@ -15,10 +15,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 
-class CustomerSerializer(serializers.HyperlinkedModelSerializer):
+class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ('url', 'name', 'email')
+        fields = ('username', 'email','password')
         
 
         
