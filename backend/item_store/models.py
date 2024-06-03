@@ -34,7 +34,7 @@ class Review(models.Model):
     
 class Basket(models.Model):
     customer = models.OneToOneField(Customer, on_delete=models.CASCADE)
-    products = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
     
 class Order(models.Model):
