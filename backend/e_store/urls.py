@@ -16,34 +16,37 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.contrib.auth.models import User
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 from rest_framework import routers, serializers, viewsets
 from django.urls import path, include
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
 
-# Serializers define the API representation.
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'is_staff']
-
-# ViewSets define the view behavior.USer
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+# class CustomerTokenPairView(TokenObtainPairView):
+#     permission_classes = (AllowAny ,)
+#     serializer_class = CustomerTokenPairSerializer
+    
+#     def get(self,request):
+#         return Response(data={"test":"here"})
+    
+# class CustomerTokenRefreshView(TokenRefreshView):
+#     permission_classes = (IsAuthenticated ,)
+#     authentication_classes = [JWTAuthentication]
+#     serializer_class = CustomerTokenRefreshSerializer
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet)
+# router.register(r'users', UserViewSet)
 
 urlpatterns = [
-    path('',include(router.urls)),
+    path('api/token/',include('token_auth.urls')),
     path('admin/', admin.site.urls),
     path('products/',include("products.urls")),
-    path('api-auth/',include('rest_framework.urls', namespace='rest_framework')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
+    #path('items/',include("item_store.urls"))
 ]
+
+urlpatterns += [path('api-auth/',include('rest_framework.urls', namespace='rest_framework'))]
