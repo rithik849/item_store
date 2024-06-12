@@ -3,12 +3,22 @@ from rest_framework import status
 from django.db.models.manager import BaseManager
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.fields import api_settings
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.pagination import DjangoPaginator
 from products.models import Product
 from item_store.models import Order, OrderNumber, Review, Basket, Customer
 from item_store.serializers import CreateOrderSerializer, OrderNumberSerializer, OrderSerializer, RemoveFromBasketSerializer, ReviewSerializer, BasketSerializer, AddToBasketSerializer
 
+
+def paginate(request,data):
+        paginator_class = api_settings.DEFAULT_PAGINATION_CLASS
+        paginator = paginator_class() # type: ignore
+        page = paginator.paginate_queryset(queryset=data, request=request)
+        if page is not None:
+            return paginator.get_paginated_response(page) # type: ignore
+        return Response(data,status=status.HTTP_200_OK)
 class MixedPermissionModelViewSet(viewsets.ModelViewSet):
    '''
    Mixed permission base model allowing for action level
@@ -33,18 +43,20 @@ class MixedPermissionModelViewSet(viewsets.ModelViewSet):
 # Review: Customers should be able to view and post reviews of products.
 class ReviewViewSet(MixedPermissionModelViewSet):
     
-    permission_classes_by_action = {"create" : [IsAuthenticated]}
+    permission_classes_by_action = {"create" : [IsAuthenticated], 'retrieve': [AllowAny], 'list': [AllowAny]}
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
     
-    def retrieve(self, request, pk=None):
-        queryset = Review.objects.all()
-        product = get_object_or_404(queryset,pk = pk)
-        serializer = ReviewSerializer(product)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+    # def retrieve(self, request, pk=None):
+    #     queryset = Review.objects.all()
+    #     product = get_object_or_404(queryset,pk = pk)
+    #     serializer = ReviewSerializer(product)
+    #     return Response(serializer.data,status=status.HTTP_200_OK)
         
-    def list(self,request):
-        queryset = Review.objects.all()
-        serializer = ReviewSerializer(queryset,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+    # def list(self,request):
+    #     queryset = Review.objects.all()
+    #     serializer = ReviewSerializer(queryset,many=True)
+    #     return Response(serializer.data,status=status.HTTP_200_OK)
     
     def create(self, request):
         serializer = ReviewSerializer(customer=request.user.id, 
@@ -64,7 +76,14 @@ class BasketViewSet(MixedPermissionModelViewSet):
         customer = request.user
         items = Basket.objects.filter(customer = customer.id)
         serializer = BasketSerializer(items,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        
+        # paginator_class = api_settings.DEFAULT_PAGINATION_CLASS
+        # paginator = paginator_class() # type: ignore
+        # page = paginator.paginate_queryset(queryset=serializer.data, request=request)
+        # if page is not None:
+        #     return paginator.get_paginated_response(page) # type: ignore
+        # return Response(serializer.data,status=status.HTTP_200_OK)
+        return paginate(request,serializer.data)
     
     def create(self, request, *args, **kwargs):
         serializer_class = AddToBasketSerializer
@@ -100,7 +119,8 @@ class OrderViewSet(MixedPermissionModelViewSet):
         customer: Customer = request.user
         orders : BaseManager[OrderNumber] = OrderNumber.objects.filter(customer=customer.id).order_by("-date") # type:ignore
         serializer = OrderNumberSerializer(orders,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        
+        return paginate(request,serializer.data)
     
     # Retrieve the products part of the order
     def retrieve(self, request):
@@ -108,7 +128,8 @@ class OrderViewSet(MixedPermissionModelViewSet):
         order_number : OrderNumber = OrderNumber.objects.get(customer=customer.id,id = request.data['order_id']) # type:ignore
         items : BaseManager[Order] = Order.objects.filter(order_number=order_number.id) # type: ignore
         serializer = OrderSerializer(items,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        
+        return paginate(request,serializer.data)
     
     def create(self, request):
         """
