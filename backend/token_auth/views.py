@@ -2,45 +2,14 @@ from django.contrib.auth import authenticate
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.generics import CreateAPIView, GenericAPIView, Http404, get_object_or_404
-from rest_framework.views import APIView
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from rest_framework.generics import CreateAPIView, GenericAPIView, Http404
 from e_store.permissions import IsNotAuthenticated
 from item_store.models import Customer
 from token_auth.serializers import SignUpSerializer, LogInSerializer, UpdateDetailsSerializer, UpdatePasswordSerializer
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from collections import OrderedDict
 from django.contrib.auth.models import AnonymousUser
-
-# # Create your views here.
-# class CustomerTokenPairView(TokenObtainPairView):
-#     authentication_classes = [SessionAuthentication,JWTAuthentication]
-#     # permission_classes = (IsAuthenticated ,)
-    
-#     serializer_class = CustomerTokenPairSerializer
-    
-    
-#     def get_object(self):
-        
-#         obj = get_object_or_404(self.get_queryset())
-#         print("HERE "+ str(type(obj)))
-#         self.check_object_permissions(self.request, obj)
-#         return obj
-    
-# class CustomerTokenRefreshView(TokenRefreshView):
-#     # authentication_classes = [SessionAuthentication]
-#     # permission_classes = (AllowAny ,)
-
-#     serializer_class = CustomerTokenRefreshSerializer
-    
-#     def get(self,request):
-#         return Response(data={"test":"here"})
     
 class CustomerSignUpView(CreateAPIView):
     permission_classes = (IsNotAuthenticated,)
