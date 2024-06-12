@@ -9,9 +9,4 @@ class IsNotAuthenticated(BasePermission):
     """
 
     def has_permission(self, request, view):
-        if request.user:
-            v = Token.objects.filter(user=request.user)
-            if len(v)==0:
-                return True
-            return False
-        return (not bool(request.user and request.user.is_authenticated))
+        return bool(request.user and not request.user.is_authenticated)
