@@ -43,7 +43,7 @@ router = routers.DefaultRouter()
 # router.register(r'users', UserViewSet)
 
 urlpatterns = [
-    path('api/token/',include('token_auth.urls')),
+    path('customer/',include('token_auth.urls')),
     path('admin/', admin.site.urls),
     path('product/',include("products.urls")),
     path('',include("item_store.urls"))
