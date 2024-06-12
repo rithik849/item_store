@@ -24,25 +24,50 @@ class Customer(AbstractUser):
         verbose_name_plural = "Customers"
 
     def __str__(self):
-        return self.username + " " + self.email
+        return f"{self.username} {self.email}"
     
 class Review(models.Model):
-    customer = models.OneToOneField(Customer, on_delete=models.CASCADE)
-    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     rating = models.PositiveIntegerField(default=1,validators=[MinValueValidator(1),MaxValueValidator(5)])
     comment = models.TextField()
     
+    class Meta:
+        unique_together = ('customer','product')
+    
+    def __str__(self):
+        return f"{self.customer} {self.product} {self.rating}"
+    
 class Basket(models.Model):
-    customer = models.OneToOneField(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
     
-class Order(models.Model):
+    class Meta:
+        unique_together = ('customer','product')
+    
+    def __str__(self):
+        return f"{self.customer} {self.product} {self.quantity}"
+    
+class OrderNumber(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product,on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=1)
     date = models.DateField(default=datetime.datetime.today)
     status = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"{self.id} {self.date} {self.status}" # type: ignore
+    
+class Order(models.Model):
+    order_number = models.ForeignKey(OrderNumber, on_delete=models.CASCADE, null=True)
+    product = models.ForeignKey(Product,on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
+    
+    class Meta:
+        unique_together = ('order_number','product')
+    
+    def __str__(self):
+        return f"{self.order_number} {self.product} {self.quantity}"
+    
 
     
 
