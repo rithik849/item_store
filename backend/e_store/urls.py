@@ -45,8 +45,8 @@ router = routers.DefaultRouter()
 urlpatterns = [
     path('api/token/',include('token_auth.urls')),
     path('admin/', admin.site.urls),
-    path('products/',include("products.urls")),
-    #path('items/',include("item_store.urls"))
+    path('product/',include("products.urls")),
+    path('',include("item_store.urls"))
 ]
 
 urlpatterns += [path('api-auth/',include('rest_framework.urls', namespace='rest_framework'))]
