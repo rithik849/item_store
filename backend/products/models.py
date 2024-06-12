@@ -6,3 +6,6 @@ class Product(models.Model):
     type = models.CharField(max_length=30)
     price = models.FloatField()
     stock = models.PositiveSmallIntegerField()
+    
+    def __str__(self):
+        return str(self.name)
