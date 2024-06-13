@@ -1,94 +1,64 @@
-from typing import List
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.db.models.manager import BaseManager
-from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from rest_framework.fields import api_settings
+from rest_framework.mixins import DestroyModelMixin, RetrieveModelMixin, ListModelMixin
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.pagination import DjangoPaginator
+from e_store.permissions import ReviewPermission
 from products.models import Product
 from item_store.models import Order, OrderNumber, Review, Basket, Customer
 from item_store.serializers import CreateOrderSerializer, OrderNumberSerializer, OrderSerializer, RemoveFromBasketSerializer, ReviewSerializer, BasketSerializer, AddToBasketSerializer
+from products.views import GetUserMixin
 
-
-def paginate(request,data):
-        paginator_class = api_settings.DEFAULT_PAGINATION_CLASS
-        paginator = paginator_class() # type: ignore
+def paginate(request,data,paginator):
         page = paginator.paginate_queryset(queryset=data, request=request)
         if page is not None:
             return paginator.get_paginated_response(page) # type: ignore
         return Response(data,status=status.HTTP_200_OK)
-class MixedPermissionModelViewSet(viewsets.ModelViewSet):
-   '''
-   Mixed permission base model allowing for action level
-   permission control. Subclasses may define their permissions
-   by creating a 'permission_classes_by_action' variable.
-
-   Example:
-   permission_classes_by_action = {'list': [AllowAny],
-                                   'create': [IsAdminUser]}
-   '''
-
-   permission_classes_by_action = {}
-
-   def get_permissions(self):
-      try:
-        # return permission_classes depending on `action`
-        return [permission() for permission in self.permission_classes_by_action[self.action]]
-      except KeyError:
-        # action is not set return default permission_classes
-        return [permission() for permission in self.permission_classes] # type: ignore
 
 # Review: Customers should be able to view and post reviews of products.
-class ReviewViewSet(MixedPermissionModelViewSet):
+class ReviewViewSet(
+    viewsets.GenericViewSet,
+    RetrieveModelMixin,
+    DestroyModelMixin,
+    ListModelMixin):
     
-    permission_classes_by_action = {"create" : [IsAuthenticated], 'retrieve': [AllowAny], 'list': [AllowAny]}
+    permission_classes = [ReviewPermission]
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     
-    # def retrieve(self, request, pk=None):
-    #     queryset = Review.objects.all()
-    #     product = get_object_or_404(queryset,pk = pk)
-    #     serializer = ReviewSerializer(product)
-    #     return Response(serializer.data,status=status.HTTP_200_OK)
-        
-    # def list(self,request):
-    #     queryset = Review.objects.all()
-    #     serializer = ReviewSerializer(queryset,many=True)
-    #     return Response(serializer.data,status=status.HTTP_200_OK)
-    
     def create(self, request):
-        serializer = ReviewSerializer(customer=request.user.id, 
+        user = request.user
+        serializer = ReviewSerializer(customer=user.id, 
                                       product=request.data['product_id'], 
                                       rating=request.data['rating'], 
                                       comment=request.data['comment'])
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data,status=status.HTTP_200_OK)
+    
+    def destroy(self,request):
+        user = request.user
+        review : Review = get_object_or_404(klass=Review,customer=user.id,product=request.data['product_id'])
+        review.delete()
+        return Response("Your review has been successfully deleted", status=status.HTTP_200_OK)
 
 # Basket: Customers should be able to view their basket, add items to their basket and remove items from their basket.
-class BasketViewSet(MixedPermissionModelViewSet):
-    
-    permission_classes_by_action = {"create" : [IsAuthenticated]}
+class BasketViewSet(
+    viewsets.GenericViewSet,
+    GetUserMixin):
     
     def retrieve(self, request, pk=None):
-        customer = request.user
+        customer = self.get_object()
         items = Basket.objects.filter(customer = customer.id)
         serializer = BasketSerializer(items,many=True)
         
-        # paginator_class = api_settings.DEFAULT_PAGINATION_CLASS
-        # paginator = paginator_class() # type: ignore
-        # page = paginator.paginate_queryset(queryset=serializer.data, request=request)
-        # if page is not None:
-        #     return paginator.get_paginated_response(page) # type: ignore
-        # return Response(serializer.data,status=status.HTTP_200_OK)
-        return paginate(request,serializer.data)
+        return paginate(request,serializer.data,self.paginator)
     
     def create(self, request, *args, **kwargs):
         serializer_class = AddToBasketSerializer
         # Get the authenticated users basket and search if the product exists in the basket
-        user: Customer = request.user # type: ignore
+        user: Customer = self.get_object() # type: ignore
         baskets: BaseManager[Basket]= Basket.objects.filter(customer = request.user.id)
         entry_for_product = baskets.filter(product_id=request.data['product_id'])
         
@@ -102,7 +72,7 @@ class BasketViewSet(MixedPermissionModelViewSet):
         return Response({"success" : True,"detail" : "Product added to basket"},status=status.HTTP_200_OK)
 
     def destroy(self,request):
-        user: Customer = request.user # type: ignore
+        user: Customer = self.get_object() # type: ignore
         basket: BaseManager[Basket]= Basket.objects.filter(customer = user.id)  # type: ignore
         entry_for_product = basket.get(product_id=request.data['product_id'])
         
@@ -112,24 +82,25 @@ class BasketViewSet(MixedPermissionModelViewSet):
         return Response({"success" : True,"detail" : "Product decremented from basket"},status=status.HTTP_200_OK)
     
 # Order: Customers should be able to view their previous orders.
-class OrderViewSet(MixedPermissionModelViewSet):
+class OrderViewSet(viewsets.GenericViewSet,
+                   GetUserMixin):
 
     # List orders made by a customer
     def list(self, request):
-        customer: Customer = request.user
+        customer: Customer = self.get_object()
         orders : BaseManager[OrderNumber] = OrderNumber.objects.filter(customer=customer.id).order_by("-date") # type:ignore
         serializer = OrderNumberSerializer(orders,many=True)
         
-        return paginate(request,serializer.data)
+        return paginate(request,serializer.data,self.paginator)
     
     # Retrieve the products part of the order
     def retrieve(self, request):
-        customer: Customer = request.user
+        customer: Customer = self.get_object()
         order_number : OrderNumber = OrderNumber.objects.get(customer=customer.id,id = request.data['order_id']) # type:ignore
         items : BaseManager[Order] = Order.objects.filter(order_number=order_number.id) # type: ignore
         serializer = OrderSerializer(items,many=True)
         
-        return paginate(request,serializer.data)
+        return paginate(request,serializer.data,self.paginator)
     
     def create(self, request):
         """
@@ -137,7 +108,7 @@ class OrderViewSet(MixedPermissionModelViewSet):
         and create an orderNum entry. For each item we create an entry in Order using orderNum,
         decrementing items from Product.
         """
-        user : Customer = request.user
+        user : Customer = self.get_object()
         items = Basket.objects.filter(customer=user.id) # type: ignore
         
         # Need to validate against products incase quantities have changed
