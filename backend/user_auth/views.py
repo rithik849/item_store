@@ -1,15 +1,20 @@
-from django.contrib.auth import authenticate
+from typing import Optional
+import typing
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.base_user import AbstractBaseUser
 from django.shortcuts import render
-from rest_framework import status
+from django.contrib.auth.models import AnonymousUser
+from rest_framework import settings, status
+
 from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.generics import CreateAPIView, GenericAPIView, Http404
-from e_store.permissions import IsNotAuthenticated
-from item_store.models import Customer
-from token_auth.serializers import SignUpSerializer, LogInSerializer, UpdateDetailsSerializer, UpdatePasswordSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from collections import OrderedDict
-from django.contrib.auth.models import AnonymousUser
+from e_store.permissions import IsNotAuthenticated
+from item_store.models import Customer
+from user_auth.serializers import SignUpSerializer, LogInSerializer, UpdateDetailsSerializer, UpdatePasswordSerializer
     
 class CustomerSignUpView(CreateAPIView):
     permission_classes = (IsNotAuthenticated,)
@@ -64,31 +69,34 @@ class CustomerLogInView(GenericAPIView):
     def post(self, request):
         try:
             serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
             
-            #user:Customer = authenticate(username=request.data['email'], password=request.data['password']) # type: ignore
-            try:
-                serializer.is_valid(raise_exception=True)
-                data = serializer.validated_data
-                
-                if (not (type(data) is OrderedDict)) or (not ('email' in data)):
-                    raise Exception
-                email = data['email']
-                user : Customer = Customer.objects.get(email=email)
-                token, created = Token.objects.get_or_create(user=user)
-                return Response({
-                    'success' : True,
-                    'username': user.get_username(),
-                    'email': user.email,
-                    'token': token.key
-                    },status=status.HTTP_200_OK)
-            except Exception as e:
-                return Response({'success' : False, 'detail' : str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            # if (not (type(data) is OrderedDict)) or (not ('email' in data)):
+            #     raise Exception
+            # user : Customer = Customer.objects.get(email=email)
+            user : Optional[AbstractBaseUser] = authenticate(username=data['username'],password=data['password'])
+            user = typing.cast(Customer,user)
+            if user==None:
+                raise Exception
+            token, created = Token.objects.get_or_create(user=user)
+            login(request, user)
+            return Response({
+                'success' : True,
+                'username': user.get_username(),
+                'email': user.email,
+                'token': token.key
+                },status=status.HTTP_200_OK)
         except KeyError as e:
             return Response({'success' : False,'detail' : 'Username and Password not found'}, status=status.HTTP_401_UNAUTHORIZED)
         
 class CustomerLogOutView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
-    def delete(self,request):
+    serializer_class = LogInSerializer
+    
+    def post(self,request):
         token = Token.objects.get(user=request.user)
         token.delete()
+        logout(request)
+
         return Response({"success": True, "detail": "Logged out!"}, status=status.HTTP_200_OK)

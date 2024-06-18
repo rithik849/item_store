@@ -81,19 +81,20 @@ class UpdatePasswordSerializer(BaseSerializer):
     
     
 class LogInSerializer(BaseSerializer):
-    email = serializers.EmailField()
+    username = serializers.CharField()
+    password = serializers.CharField()
     
     class Meta:
         model = Customer
-        fields = ['email','password']
+        fields = ['username','password']
     
     def validate(self, attrs):
         print(attrs)
         user_obj = None
-        email = attrs['email']
+        username = attrs['username']
         password = attrs['password']
-        if email and password:
-            user_obj = Customer.objects.get(email=email)
+        if username and password:
+            user_obj = Customer.objects.get(username=username)
             if (not user_obj) or (not user_obj.check_password(password)):
                 raise serializers.ValidationError('Incorrect email or password')
         return attrs
