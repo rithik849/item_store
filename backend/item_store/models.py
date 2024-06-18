@@ -1,9 +1,8 @@
 import datetime
 from django.db import models
-from django.urls import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator 
 from products.models import Product
-from django.contrib.auth.models import AbstractUser, AbstractBaseUser
+from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 
@@ -11,7 +10,7 @@ from django.contrib.auth.models import AbstractUser, AbstractBaseUser
 class Customer(AbstractUser):
 
     username = models.TextField(max_length=50,unique=True)
-    email = models.EmailField(max_length=100)
+    email = models.EmailField(max_length=100, unique = True)
     password = models.TextField(max_length=255)
     
     USERNAME_FIELD = 'username'

@@ -1,8 +1,7 @@
-from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from item_store.models import Customer, OrderNumber, Review, Basket, Order, Product
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
+from products.serializers import ProductSerializer
+from item_store.models import Customer, OrderNumber, Review, Basket, Order, Product
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -18,24 +17,38 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ('username', 'email','password')
+        fields = ('username', 'email')
         
 
 class ReviewSerializer(serializers.ModelSerializer):
+    customer = CustomerSerializer()
+    product = ProductSerializer()
+    class Meta:
+        model = Review
+        fields = '__all__'
+        depth = 1
+        
+class CreateReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
     
-class BasketSerializer(serializers.ModelSerializer):
+class BasketSerializer(serializers.HyperlinkedModelSerializer):
+    
     class Meta:
         model = Basket
-        fields = '__all__'
+        depth=1
+        # fields = '__all__'
+        exclude = ['customer']
+        extra_kwargs = {
+            "url" : {"lookup_field" : "id"}
+        }
         
     # Validate that quantity is less than  or equal to what is in stock
     def validate(self, data):
         product = Product.objects.get(id = data['product'])
         if product.stock < data['quantity']:
-            raise serializers.ValidationError("Not enough of product" +str(product.name)+ " in stock")
+            raise serializers.ValidationError("Not enough of product " +str(product.name)+ " in stock")
         return data
     
     def create(self,validated_data):
@@ -44,14 +57,21 @@ class BasketSerializer(serializers.ModelSerializer):
         return entry
     
 
-class AddToBasketSerializer(BasketSerializer):
+class AddToBasketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Basket
+        fields = '__all__'
     # Validate that quantity is less than  or equal to what is in stock
     def validate(self, data):
         basket = self.instance
-        product = Product.objects.get(id = data['product'])
-        initial_quantity = basket.quantity if basket!=None else 0
+        if basket:
+            product = basket.product
+            initial_quantity = basket.quantity
+        else:
+            product = data['product']
+            initial_quantity = 0
         if product.stock < initial_quantity + data['quantity']:
-            raise serializers.ValidationError("Not enough of product" +str(product.name)+ " in stock")
+            raise serializers.ValidationError("Not enough of product " +str(product.name)+ " in stock")
         return data
     
     def update(self, instance, validated_data):
@@ -59,25 +79,24 @@ class AddToBasketSerializer(BasketSerializer):
             if attr!='quantity':
                 instance[attr] = value
         if 'quantity' in validated_data:
-            instance['quantity'] += validated_data['quantity'] 
+            instance.quantity += validated_data['quantity'] 
         instance.save()
         return instance
         
 class RemoveFromBasketSerializer(BasketSerializer):
     # Validate that quantity is less than  or equal to what is in stock
     def validate(self, data):
-        basket = self.instance
-        product = Product.objects.get(id = data['product'])
-        initial_quantity = basket.quantity if basket!=None else 0
+        basket : Basket = self.instance # type: ignore
+        initial_quantity = basket.quantity
         if ((initial_quantity - data['quantity']) < 0):
             raise serializers.ValidationError("Basket quantity is less than the quantity to remove.")
         return data
     
     def update(self, instance, validated_data):
         if 'quantity' in validated_data:
-            instance['quantity'] -= validated_data['quantity']
+            instance.quantity -= validated_data['quantity']
         # Remove if we have no items in the basket
-        if instance['quantity']==0:
+        if instance.quantity==0:
             instance.delete()
             return None
         instance.save()
