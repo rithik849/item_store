@@ -1,8 +1,4 @@
-
-
 from rest_framework import permissions
-from rest_framework.authtoken.models import Token
-
 class IsNotAuthenticated(permissions.BasePermission):
     """
     Allows access only to unauthenticated users.
@@ -15,9 +11,24 @@ class IsNotAuthenticated(permissions.BasePermission):
 class ReviewPermission(permissions.BasePermission):
     
     def has_permission(self, request, view):
-        if request.user and request.user.is_authenticated:
-            if request.action in ['create','destroy']:
-                return False
-        return True
+        if request.method in ['POST','DELETE']:
+            print('request '+str(request.method))
+            if request.user and request.user.is_authenticated:
+                return True
+        if request.method in ['GET']:
+            return True
+        return False
+    
+    def has_object_permission(self,request,view,obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj.customer == request.user
+    
+class IsOwnerPermission(permissions.IsAuthenticated):
+    
+    
+    def has_object_permission(self,request,view,obj):
+        return obj.customer == request.user
+        
             
             
