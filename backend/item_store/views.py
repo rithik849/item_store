@@ -23,14 +23,29 @@ def paginate(request,data,paginator):
 # Review: Customers should be able to view and post reviews of products.
 # @method_decorator(csrf_exempt,name='list')
 class ReviewViewSet(
-    viewsets.GenericViewSet,
     RetrieveModelMixin,
-    ListModelMixin):
+    ListModelMixin,
+    viewsets.GenericViewSet):
     
     permission_classes = [ReviewPermission]
     queryset = Review.objects.all().order_by('id')
     serializer_class = ReviewSerializer
+    lookup_fields = ['customer_username','product_id']
     
+    def get_object(self):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        filter = {}
+        for field in self.lookup_fields:
+            filter[field] = self.kwargs[field]
+            
+        user = Customer.objects.get(username=filter['customer_username'])
+        del filter['customer_username']
+        filter['customer'] = user
+        obj = get_object_or_404(queryset, **filter)
+        self.check_object_permissions(self.request, obj)
+        return obj
+        
     def create(self, request):
         user = request.user
         request.data['customer'] = user.id
@@ -40,9 +55,9 @@ class ReviewViewSet(
         serializer.save()
         return Response(serializer.data,status=status.HTTP_200_OK)
     
-    def destroy(self,request):
+    def destroy(self,request, customer_username=None, product_id=None):
         user = request.user
-        review : Review = get_object_or_404(klass=Review,customer=user.id,product=request.data['product_id'])
+        review : Review = self.get_object()
         review.delete()
         return Response("Your review has been successfully deleted", status=status.HTTP_200_OK)
 
