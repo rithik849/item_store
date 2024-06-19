@@ -1,4 +1,5 @@
 creds.txt
-env
+.env
 __pycache__
 TODO.txt
+env
