@@ -173,7 +173,7 @@ REST_FRAMEWORK = {
         # 'rest_framework_xml.renderers.XMLRenderer',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 1
+    'PAGE_SIZE': 2
 }
 
 SIMPLE_JWT = {
@@ -224,3 +224,4 @@ SIMPLE_JWT = {
 # CSRF_HEADER_NAME = "X-CSRFToken"
 
 
+ALLOWED_HOSTS = ['localhost','testserver']

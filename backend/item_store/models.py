@@ -51,7 +51,6 @@ class Basket(models.Model):
 class OrderNumber(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     date = models.DateField(default=datetime.datetime.today)
-    status = models.BooleanField(default=False)
     
     def __str__(self):
         return f"{self.id} {self.date} {self.status}" # type: ignore

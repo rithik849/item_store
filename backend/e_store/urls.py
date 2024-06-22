@@ -35,9 +35,9 @@ from e_store.permissions import IsNotAuthenticated
 # Routers provide an easy way of automatically determining the URL conf.
 
 urlpatterns = [
-    path('customer/',include('user_auth.urls')),
+    path('customers/',include('user_auth.urls')),
     path('admin/', admin.site.urls),
-    path('product/',include("products.urls")),
+    path('products/',include("products.urls")),
     path('',include("item_store.urls"))
 ]
 

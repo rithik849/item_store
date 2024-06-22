@@ -4,9 +4,10 @@ from products.models import Product
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ('name','price','type','stock')
+        fields = ('id','name','price','type','stock')
         
 class UpdateProductSerializer(serializers.ModelSerializer):
+    stock = serializers.IntegerField()
     
     class Meta:
         model = Product
@@ -14,11 +15,11 @@ class UpdateProductSerializer(serializers.ModelSerializer):
         
     # Negative quantity, we remove product, positive we add product
     def validate(self,data):
-        if self.instance.stock + data['quantity'] < 0: # type: ignore
+        if self.instance.stock + data['stock'] < 0: # type: ignore
             raise Exception("Not enough of product "+str(self.instance)+" in stock")
         return data
     
     def update(self,instance,validated_data):
-        instance.stock += validated_data['quantity']
+        instance.stock += validated_data['stock']
         instance.save()
         return instance

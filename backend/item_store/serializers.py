@@ -3,7 +3,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from products.serializers import ProductSerializer
 from item_store.models import Customer, OrderNumber, Review, Basket, Order, Product
 
-from rest_framework.relations import HyperlinkedIdentityField
+from rest_framework.relations import HyperlinkedIdentityField, HyperlinkedRelatedField
 from rest_framework.reverse import reverse
 
 class ParameterisedHyperlinkedIdentityField(HyperlinkedIdentityField):
@@ -39,6 +39,7 @@ class ParameterisedHyperlinkedIdentityField(HyperlinkedIdentityField):
 
         return reverse(view_name, kwargs=kwargs, request=request, format=format)
 
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user : Customer):
@@ -67,25 +68,24 @@ class ReviewSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'url': {'lookup_fields' : ['customer_username','product_id']}
             }
-        
+
+
 class CreateReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
     
-class BasketSerializer(serializers.HyperlinkedModelSerializer):
+class BasketSerializer(serializers.ModelSerializer):
+    customer = CustomerSerializer()
     
     class Meta:
         model = Basket
         depth=1
-        # fields = '__all__'
-        exclude = ['customer']
-        extra_kwargs = {
-            "url" : {"lookup_field" : "id"}
-        }
+        fields = '__all__'
         
     # Validate that quantity is less than  or equal to what is in stock
     def validate(self, data):
+        print("HERE " + str(data))
         product = Product.objects.get(id = data['product'])
         if product.stock < data['quantity']:
             raise serializers.ValidationError("Not enough of product " +str(product.name)+ " in stock")
@@ -95,9 +95,30 @@ class BasketSerializer(serializers.HyperlinkedModelSerializer):
         entry = Basket(**validated_data)
         entry.save()
         return entry
-    
 
+
+class BasketListViewSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='basket-detail',lookup_field='id',read_only=False)
+    customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
+    product = serializers.HyperlinkedRelatedField(view_name='product-detail',read_only=True)
+    
+    class Meta:
+        model = Basket
+        depth=1
+        fields = '__all__'
+        extra_kwargs = {
+            'url' : {'lookup_field' : 'id' }
+        }
+
+
+class OrderBasketSerializer(BasketSerializer):
+    class Meta:
+        model = Basket
+        fields = "__all__"
+        
+        
 class AddToBasketSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model=Basket
         fields = '__all__'
@@ -123,7 +144,12 @@ class AddToBasketSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
         
-class RemoveFromBasketSerializer(BasketSerializer):
+class RemoveFromBasketSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Basket
+        fields = '__all__'
+        
     # Validate that quantity is less than  or equal to what is in stock
     def validate(self, data):
         basket : Basket = self.instance # type: ignore
@@ -141,28 +167,44 @@ class RemoveFromBasketSerializer(BasketSerializer):
             return None
         instance.save()
         return instance
-    
-class OrderNumberSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderNumber
-        fields = '__all__'
-    
-class CreateOrderSerializer(serializers.ModelSerializer):
-    
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
     class Meta:
         model = Order
         fields = '__all__'
+
+
+class OrderNumberSerializer(serializers.ModelSerializer):
+    url = ParameterisedHyperlinkedIdentityField(view_name='order-detail', lookup_fields=(("<date>","date"),("<id>","id")))
+    items = serializers.SerializerMethodField() 
+    customer = CustomerSerializer()
+    
+    class Meta:
+        model = OrderNumber
+        fields = '__all__'
+        
+    def get_items(self,obj):
+        orders = Order.objects.filter(order_number = obj.id)
+        serializers = OrderSerializer(orders, many=True)
+        return serializers.data
+    
+    
+class CreateOrderSerializer(serializers.Serializer):
+    product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    quantity = serializers.IntegerField()
+    
+    # class Meta:
+    #     model = Basket
+    #     fields = ('product_id','quantity')
     
     def create(self,validated_data):
         # Need to have order num to create order
         order_id = self.context['order_id']
-        
-        for item in validated_data:
-            order = Order(order_number = order_id,
-                  product = item.product,
-                  quantity = item.quantity)
-            order.save()
-class OrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = '__all__'
+        print("HERE")
+        print(validated_data)
+        order = Order(order_number = order_id,
+                product = validated_data['product_id'],
+                quantity = validated_data['quantity'])
+        order.save()

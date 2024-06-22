@@ -1,16 +1,19 @@
 from django.shortcuts import get_object_or_404
 from django.db.models.manager import BaseManager
+from django.db.models import Q
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.exceptions import APIException
 from rest_framework.mixins import DestroyModelMixin, RetrieveModelMixin, ListModelMixin
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import csrf_exempt
 from rest_framework.decorators import action
-from e_store.permissions import IsOwnerPermission, ReviewPermission
+from e_store.permissions import IsCustomerPermission, IsOwnerPermission, ReviewPermission
 from products.models import Product
 from products.serializers import UpdateProductSerializer
 from item_store.models import Order, OrderNumber, Review, Basket, Customer
-from item_store.serializers import CreateOrderSerializer, OrderNumberSerializer, OrderSerializer, RemoveFromBasketSerializer, CreateReviewSerializer,ReviewSerializer, BasketSerializer, AddToBasketSerializer
+from item_store.serializers import BasketListViewSerializer, CreateOrderSerializer, CustomerSerializer, OrderBasketSerializer, OrderNumberSerializer, OrderSerializer, RemoveFromBasketSerializer, CreateReviewSerializer,ReviewSerializer, BasketSerializer, AddToBasketSerializer
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, requires_csrf_token
 from django.utils.decorators import method_decorator
 
@@ -19,7 +22,7 @@ def paginate(request,data,paginator):
         if page is not None:
             return paginator.get_paginated_response(page) # type: ignore
         return Response(data,status=status.HTTP_200_OK)
-
+    
 # Review: Customers should be able to view and post reviews of products.
 # @method_decorator(csrf_exempt,name='list')
 class ReviewViewSet(
@@ -73,12 +76,12 @@ class BasketViewSet(
     permission_classes = [IsOwnerPermission]
     
     def get_queryset(self):
-        return Basket.objects.filter(customer=self.request.user.id) # type: ignore
+        return Basket.objects.filter(customer=self.request.user) # type: ignore
     
     def list(self, request):
         customer = self.request.user
         items = self.get_queryset()# Basket.objects.filter(customer = customer.id) # type: ignore
-        serializer = BasketSerializer(items,many=True,context = {"request":request})
+        serializer = BasketListViewSerializer(items,many=True,context = {"request":request})
         
         return paginate(request,serializer.data,self.paginator)
     
@@ -87,11 +90,11 @@ class BasketViewSet(
         # Get the authenticated users basket and search if the product exists in the basket
         user: Customer = self.request.user # type: ignore
         baskets: BaseManager[Basket]= self.get_queryset()
-        entry_for_product = baskets.filter(product_id=request.data['product_id'])
+        entry_for_product = baskets.filter(product_id=request.data['product'])
         if request.data['quantity'] <= 0:
-            raise Exception("Can only have a positive quantity of a product")
+            raise APIException("Can only have a positive quantity of a product")
         if entry_for_product.count() == 0:
-            serializer = serializer_class(data={'customer' : user.id, 'product' : request.data['product_id'], 'quantity' : request.data['quantity']}) # type: ignore
+            serializer = serializer_class(data={'customer' : user.id, 'product' : request.data['product'], 'quantity' : request.data['quantity']}) # type: ignore
         else:
             serializer = serializer_class(instance = entry_for_product[0], data = {'quantity' : request.data['quantity']}, partial = True)
         
@@ -101,7 +104,7 @@ class BasketViewSet(
     
     def delete(self,request, id=None):
         if id == None:
-            raise Exception("Need to choose a basket item to delete.")
+            raise APIException("Need to choose a basket item to delete.")
         print(f"PRIMARY KEY : {id}")
         user : Customer = request.user
         item : Basket = self.get_object()
@@ -139,24 +142,39 @@ class BasketViewSet(
 class OrderViewSet(
     viewsets.GenericViewSet):
     
-    permission_classes = [IsOwnerPermission]
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'order_id'
+    
+    def get_queryset(self):
+        return OrderNumber.objects.filter(customer=self.request.user)
+    
+    def get_serializer_class(self):
+        serializers = {
+            'list' : OrderNumberSerializer,
+            'retrieve' : OrderNumberSerializer,
+            'create' : CreateOrderSerializer,
+        }
+        return serializers[self.action]
+        
 
     # List orders made by a customer
     def list(self, request):
         customer: Customer = self.request.user # type: ignore
-        orders : BaseManager[OrderNumber] = OrderNumber.objects.filter(customer=customer.id).order_by("-date") # type:ignore
-        serializer = OrderNumberSerializer(orders,many=True)
+        orders : BaseManager[OrderNumber] = OrderNumber.objects.filter(customer=customer).order_by("-date") # type:ignore
+        serializer = self.get_serializer_class()
+        serializer = serializer(orders, many=True, context = {'request' : request})
         
         return paginate(request,serializer.data,self.paginator)
     
     # Retrieve the products part of the order
-    def retrieve(self, request):
+    def retrieve(self,request, date=None, id=None):
         customer: Customer = self.request.user # type: ignore
-        order_number : OrderNumber = OrderNumber.objects.get(customer=customer.id,id = request.data['order_id']) # type:ignore
-        items : BaseManager[Order] = Order.objects.filter(order_number=order_number.id) # type: ignore
-        serializer = OrderSerializer(items,many=True)
+        order_number : OrderNumber = OrderNumber.objects.get(customer=customer.id,date=date, id=id) # type:ignore
+        # items : BaseManager[Order] = Order.objects.filter(order_number=order_number.id) # type: ignore
+        serializer = self.get_serializer_class()
+        serializer = serializer(order_number,context = {'request' : request})
         
-        return paginate(request,serializer.data,self.paginator)
+        return paginate(request,serializer.data['items'],self.paginator)
     
     def create(self, request):
         """
@@ -165,33 +183,48 @@ class OrderViewSet(
         decrementing items from Product.
         """
         user : Customer = self.request.user # type: ignore
-        items = Basket.objects.filter(customer=user.id) # type: ignore
+        items = Basket.objects.filter(customer=user) # type: ignore
+        print('here '+str(items))
         
-        if len(items)==0:
-            raise Exception("You do not have items in your basket.")
+        if items.count()==0:
+            raise APIException("You do not have items in your basket.")
+        
+        print('here2')
         
         # Need to validate against products incase quantities have changed
-        serializer = BasketSerializer(data=items, many=True)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.data
+        
+        for item in items:
+            if item.product.stock < item.quantity:
+                raise APIException("Not enough of "+str(item.product)+" in stock")
+            
+        
+        print('here3')
         
         
         # Reduce the stock of each product
-        for item in data:
-            id = item['product']
-            product = Product.objects.get(id=id)
-            product_serializer = UpdateProductSerializer(instance=product, data=-item['quantity'])
+        for item in items:
+            print(item)
+            product = item.product
+            product_serializer = UpdateProductSerializer(instance=product, data = {"stock" : -item.quantity},partial=True)
+            product_serializer.is_valid(raise_exception=True)
+            print('here4')
             product_serializer.save()
-        # Remove items from the basket
-        items.delete()
+        
+        print('here4')
 
         # Create the order
-        order_ref = OrderNumber(customer=user.id) #type: ignore
+        order_ref = OrderNumber(customer=user) #type: ignore
         order_ref.save()
-        serializer = CreateOrderSerializer(data=data, 
-                                        context = {'order_id' : order_ref.id}, # type: ignore
+        print(list(items.values()))
+        serializer = self.get_serializer_class()
+        serializer = serializer(data=list(items.values()), 
+                                        context = {'order_id' : order_ref}, # type: ignore
                                         many=True) 
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        
+        # Remove items from the basket
+        items.delete()
+        print("here5")
         
         return Response({"success" : True, "detail" : "Order has been made"},status=status.HTTP_200_OK)

@@ -30,5 +30,8 @@ class IsOwnerPermission(permissions.IsAuthenticated):
     def has_object_permission(self,request,view,obj):
         return obj.customer == request.user
         
-            
+class IsCustomerPermission(permissions.IsAuthenticated):
+    
+    def has_object_permission(self,request,view,obj):
+        return obj == request.user
             
