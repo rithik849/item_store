@@ -1,0 +1,74 @@
+[
+    {
+        "model": "item_store.customer",
+        "pk": 1,
+        "fields": {
+            "last_login": "2024-06-19T14:35:34.964Z",
+            "is_superuser": true,
+            "first_name": "rithik",
+            "last_name": "",
+            "is_staff": true,
+            "is_active": true,
+            "date_joined": "2024-02-27T11:59:24.330Z",
+            "username": "rithik",
+            "email": "rithiknpatel@gmail.com",
+            "password": "pbkdf2_sha256$600000$3FpO8a25tjFEt6FUtVeaEF$AbR/n179BK8WeVOMazkXvJtygARoWE03XdiRMUXpH/k=",
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "item_store.customer",
+        "pk": 2,
+        "fields": {
+            "last_login": "2024-03-10T12:44:49.315Z",
+            "is_superuser": true,
+            "first_name": "",
+            "last_name": "",
+            "is_staff": true,
+            "is_active": true,
+            "date_joined": "2024-03-07T00:25:46.194Z",
+            "username": "admin",
+            "email": "admin@gmail.com",
+            "password": "pbkdf2_sha256$600000$SQhCXBcs3InN3j0D0ZmPad$7gj5kDNw2rYeyFF8h0S3L6+RSvGfACHJwc3SD/q4rHU=",
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "item_store.customer",
+        "pk": 5,
+        "fields": {
+            "last_login": "2024-06-18T21:58:02.168Z",
+            "is_superuser": false,
+            "first_name": "",
+            "last_name": "",
+            "is_staff": false,
+            "is_active": true,
+            "date_joined": "2024-06-18T09:51:27.489Z",
+            "username": "testuser",
+            "email": "test@test.com",
+            "password": "pbkdf2_sha256$600000$rfxC2Hb5pFBV0c3yU76CYD$lPDNFwgh4W1c6DI93zJna2iZtUmjx39UM00zIQif4iw=",
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "item_store.customer",
+        "pk": 6,
+        "fields": {
+            "last_login": "2024-06-18T21:59:24.732Z",
+            "is_superuser": false,
+            "first_name": "",
+            "last_name": "",
+            "is_staff": false,
+            "is_active": true,
+            "date_joined": "2024-06-18T21:58:59.021Z",
+            "username": "A",
+            "email": "A@A.com",
+            "password": "pbkdf2_sha256$600000$OQThs2EA3rwCVTdJze23Bd$+XDJ0IMYJdXNcLy51Q/ohzuH6zSB5riMzzoHTq41U/0=",
+            "groups": [],
+            "user_permissions": []
+        }
+    }
+]

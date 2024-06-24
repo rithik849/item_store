@@ -1,0 +1,42 @@
+[
+    {
+        "model": "item_store.review",
+        "pk": 2,
+        "fields": {
+            "customer": 1,
+            "product": 1,
+            "rating": 1,
+            "comment": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Rhoncus urna neque viverra justo nec ultrices. Lectus vestibulum mattis ullamcorper velit sed ullamcorper morbi tincidunt. Ipsum a arcu cursus vitae. Mauris rhoncus aenean vel elit scelerisque mauris. Nisl rhoncus mattis rhoncus urna neque viverra. Sed viverra tellus in hac habitasse platea. Augue interdum velit euismod in. Urna neque viverra justo nec ultrices dui sapien eget. Cras pulvinar mattis nunc sed blandit libero volutpat sed cras."
+        }
+    },
+    {
+        "model": "item_store.review",
+        "pk": 4,
+        "fields": {
+            "customer": 1,
+            "product": 3,
+            "rating": 2,
+            "comment": "Test2"
+        }
+    },
+    {
+        "model": "item_store.review",
+        "pk": 5,
+        "fields": {
+            "customer": 1,
+            "product": 2,
+            "rating": 3,
+            "comment": "Test"
+        }
+    },
+    {
+        "model": "item_store.review",
+        "pk": 6,
+        "fields": {
+            "customer": 6,
+            "product": 2,
+            "rating": 5,
+            "comment": "Good product"
+        }
+    }
+]
