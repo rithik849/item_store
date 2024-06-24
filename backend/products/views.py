@@ -5,8 +5,9 @@ from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
 
 # Create your views here.
 class ProductViewSet(RetrieveModelMixin,ListModelMixin,viewsets.GenericViewSet): # type: ignore
-    queryset = Product.objects.all()
+    queryset = Product.objects.all().order_by('id')
     serializer_class = ProductSerializer
     permission_classes = []
+    lookup_field = 'id'
     
     
