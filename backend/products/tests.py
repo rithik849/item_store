@@ -1,7 +1,9 @@
 from django.test import TransactionTestCase, TestCase, Client
-from rest_framework.test import APIClient, APIRequestFactory, api_settings
+from rest_framework.test import APIClient, APIRequestFactory, api_settings, RequestsClient
 from rest_framework.viewsets import reverse
+from rest_framework import status
 
+from item_store.models import Customer
 from products.serializers import ProductSerializer
 from products.models import Product
 from products.views import ProductViewSet
@@ -26,15 +28,40 @@ def my_reverse(viewname, kwargs=None, query_kwargs=None):
 class ProductTestCase(TransactionTestCase):
     fixtures = ['products.json']
     
-    def setUp(self):
-        self.factory = APIRequestFactory()
+    @classmethod
+    def setUpClass(cls):
+        cls.factory = APIRequestFactory()
+        cls.user = Customer.objects.create(username='test',password='testpassword123',email='testuser@testuser.com')
         
+    @classmethod
+    def tearDownClass(cls):
+        cls.user.delete()
+        cls.factory
+        
+    
+    def test_authenticated_users_are_allowed(self):
+        client = APIClient()
+        client.force_login(user=self.user)
+        response=client.get('/products/')
+        assert(response.status_code==200) # type: ignore
+        assert(response.data['count']==3) # type: ignore
+        response = client.get('/products/1/')
+        assert(response.status_code==200) # type: ignore
+        client.logout()
+    
+    def test_unauthenticated_users_are_allowed(self):
+        client = APIClient()
+        response=client.get('/products/')
+        assert(response.status_code==200) # type: ignore
+        assert(response.data['count']==3) # type: ignore
+        response = client.get('/products/1/')
+        assert(response.status_code==200) # type: ignore
     
     def test_retrieve_model(self):
         detail_view = ProductViewSet.as_view(actions={'get' : "retrieve"})
         product = Product.objects.get(id = 2)
         request = self.factory.get(reverse('product-detail',kwargs={'id' : product.id})) # type: ignore
-        response = detail_view(request,id=2)
+        response = detail_view(request, id=2)
         
         serializer = ProductSerializer(product)
         
