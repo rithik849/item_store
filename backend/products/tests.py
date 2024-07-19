@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from django.test import TransactionTestCase, TestCase, Client
 from rest_framework.test import APIClient, APIRequestFactory, api_settings, RequestsClient
 from rest_framework.viewsets import reverse
@@ -7,23 +8,9 @@ from item_store.models import Customer
 from products.serializers import ProductSerializer
 from products.models import Product
 from products.views import ProductViewSet
+from e_store.test_utils import my_reverse
 
 # Create your tests here.
-
-from django.utils.http import urlencode
-
-def my_reverse(viewname, kwargs=None, query_kwargs=None):
-    """
-    Custom reverse to add a query string after the url
-    Example usage:
-    url = my_reverse('my_test_url', kwargs={'pk': object.id}, query_kwargs={'next': reverse('home')})
-    """
-    url = reverse(viewname, kwargs=kwargs)
-
-    if query_kwargs:
-        return f'{url}?{urlencode(query_kwargs)}'
-
-    return url
 
 class ProductTestCase(TransactionTestCase):
     fixtures = ['products.json']
@@ -31,12 +18,9 @@ class ProductTestCase(TransactionTestCase):
     @classmethod
     def setUpClass(cls):
         cls.factory = APIRequestFactory()
-        cls.user = Customer.objects.create(username='test',password='testpassword123',email='testuser@testuser.com')
+        cls.user,val = Customer.objects.get_or_create(username='test',email='testuser@testuser.com')
+        cls.user.set_password('testpassword123')
         
-    @classmethod
-    def tearDownClass(cls):
-        cls.user.delete()
-        cls.factory
         
     
     def test_authenticated_users_are_allowed(self):
