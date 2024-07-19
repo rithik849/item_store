@@ -12,7 +12,6 @@ class ReviewPermission(permissions.BasePermission):
     
     def has_permission(self, request, view):
         if request.method in ['POST','DELETE']:
-            print('request '+str(request.method))
             if request.user and request.user.is_authenticated:
                 return True
         if request.method in ['GET']:
