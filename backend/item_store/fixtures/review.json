@@ -38,5 +38,15 @@
             "rating": 5,
             "comment": "Good product"
         }
+    },
+    {
+        "model": "item_store.review",
+        "pk": 6,
+        "fields": {
+            "customer": 5,
+            "product": 2,
+            "rating": 3,
+            "comment": "This product is good."
+        }
     }
 ]

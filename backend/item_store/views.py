@@ -52,7 +52,6 @@ class ReviewViewSet(
     def create(self, request):
         user = request.user
         request.data['customer'] = user.id
-        print(request.data)
         serializer = CreateReviewSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
