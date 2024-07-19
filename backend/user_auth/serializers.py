@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from rest_framework import routers, serializers, viewsets
 from item_store.models import Customer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
@@ -35,7 +36,7 @@ class UpdateDetailsSerializer(BaseSerializer):
     
     class Meta:
         model = Customer
-        fields = ['username','email']
+        exclude = ['password']
         
     def validate_username(self, value):
         instance : Customer = self.instance # type: ignore
@@ -54,8 +55,10 @@ class UpdateDetailsSerializer(BaseSerializer):
         return value
     
     def update(self, instance, validated_data):
-        for attr,value in validated_data.items():
-            instance[attr] = value
+        # for attr,value in validated_data.items():
+        #     instance[attr] = value
+        instance.username = validated_data.get('username',instance.username)
+        instance.email = validated_data.get('email',instance.email)
         instance.save()
         return instance
     
@@ -69,13 +72,12 @@ class UpdatePasswordSerializer(BaseSerializer):
         fields = ['new_password', 'confirm_password']
         
     def validate(self, attrs):
-        if attrs['password'] != attrs['confirm_password']:
+        if attrs['new_password'] != attrs['confirm_password']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
         return attrs
     
-    def update(self, instance, validated_data):
-        for attr,value in validated_data.items():
-            instance[attr] = value
+    def update(self, instance : Customer, validated_data):
+        instance.password = make_password(validated_data['new_password'])
         instance.save()
         return instance
     
@@ -89,14 +91,16 @@ class LogInSerializer(BaseSerializer):
         fields = ['username','password']
     
     def validate(self, attrs):
-        print(attrs)
         user_obj = None
         username = attrs['username']
         password = attrs['password']
         if username and password:
-            user_obj = Customer.objects.get(username=username)
-            if (not user_obj) or (not user_obj.check_password(password)):
-                raise serializers.ValidationError('Incorrect email or password')
+            try:
+                user_obj = Customer.objects.get(username=username)
+                if not user_obj.check_password(password):
+                    raise Exception
+            except:
+                raise serializers.ValidationError('Incorrect username or password')
         return attrs
     
 class SignUpSerializer(BaseSerializer):
