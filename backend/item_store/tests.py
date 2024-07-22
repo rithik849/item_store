@@ -1,8 +1,9 @@
 from django.test import TestCase
 from rest_framework.test import APITestCase, APIClient, api_settings
 import math
+from datetime import date
 
-from item_store.models import Basket, Customer, Review
+from item_store.models import Basket, Customer, Order, OrderNumber, Review
 from products.models import Product
 
 # Create your tests here.
@@ -268,5 +269,101 @@ class BasketTestCase(APITestCase):
         assert(json['detail']=="Product pencil quantity unchanged")
         assert(Basket.objects.get(customer__username='test', product__id=product_id).quantity==5)
         
-
+class OrderTestCase(APITestCase):
+    fixtures = [
+        "products/fixtures/products.json",
+        "item_store/fixtures/basket.json",
+        "item_store/fixtures/customer.json",
+        "item_store/fixtures/ordernumber.json",
+        "item_store/fixtures/order.json",
+        "item_store/fixtures/review.json"
+    ]
+    
+    @classmethod
+    def setUpClass(cls):
+        super(OrderTestCase,cls).setUpClass()
+        user = Customer.objects.get(username='test', email='testuser@testuser.com')
+        user.set_password('testpassword123')
+        # Remember to save the model to the database
+        user.save()
+        
+        cls.user = user
+        cls.client = APIClient()
+        cls.customer_id = user.id # type: ignore
+        
+    def setUp(self):
+        self.client.login(username='test',password='testpassword123')
+        
+    def tearDown(self):
+        self.client.logout()
+        
+    def test_view_orders(self):
+        response = self.client.get("/orders/")
+        json = response.json()['results']
+        orders = list(OrderNumber.objects.filter(customer__username='test').order_by("-date"))
+        assert(len(json) == 2)
+        for i in range(len(json)):
+            assert(json[i]['date'] == str(orders[i].date))
+            assert(json[i]['customer']['username']==orders[i].customer.username) # type: ignore
+    
+    def test_view_order(self):
+        date = "2024-06-21"
+        order_number = 17
+        response = self.client.get(f"/orders/{date}/{order_number}/")
+        json = response.json()
+        json = json['results']
+        items = list(Order.objects.filter(order_number=order_number))
+        
+        for i,item in enumerate(json):
+            assert(item['order_number'] == order_number)
+            assert(item['product']['id'] == items[i].product.id) # type: ignore
+            assert(item['quantity'] == items[i].quantity)
+            
+    
+    def test_make_order(self):
+        basket_items = list(Basket.objects.filter(customer__username='test').order_by("product__id"))
+        prev_stock = [item.product.stock for item in basket_items]
+        response = self.client.post("/orders/")
+        d = date.today()
+        assert(response.status_code==200)
+        
+        order_number = OrderNumber.objects.get(date=d)
+        assert(str(order_number.date) == str(d))
+        
+        orders = list(Order.objects.filter(order_number = order_number).order_by("product__id"))
+        
+        for i, item in enumerate(orders):
+            assert(basket_items[i].product.id == orders[i].product.id) # type: ignore
+            assert(orders[i].product.stock == (prev_stock[i] - orders[i].quantity))
+            
+        assert(Basket.objects.filter(customer__username='test').count()==0)
+        
+    def test_make_invalid_order(self):
+        basket_before = Basket.objects.filter(customer__username='test').order_by("product__id")
+        book = basket_before.get(product__name="Book")
+        book.quantity = 500
+        book.save()
+        pen = Basket(
+            customer = Customer.objects.get(username="test"),
+            product = Product.objects.get(name="Pen"),
+            quantity = 1000
+        )
+        pen.save()
+        prev_stock = [item.product.stock for item in basket_before]
+        order_count_before = OrderNumber.objects.filter(customer__username = "test").count()
+        response = self.client.post("/orders/")
+        assert(response.status_code==500)
+        json = response.json()
+        assert(len(json) == 2)
+        assert("Not enough of Book in stock" in json)
+        assert("Not enough of Pen in stock" in json)
+        
+        basket_after = list(Basket.objects.filter(customer__username='test').order_by("product__id"))
+        # Make sure product stock stays the same
+        for i, item in enumerate(basket_after):
+            assert(basket_after[i].product.stock == basket_before[i].product.stock)
+            
+        assert(len(basket_after)==basket_before.count())
+            
+        
         

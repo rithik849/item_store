@@ -3,7 +3,7 @@
         "model": "item_store.ordernumber",
         "pk": 17,
         "fields": {
-            "customer": 1,
+            "customer": 7,
             "date": "2024-06-21"
         }
     },
@@ -11,7 +11,7 @@
         "model": "item_store.ordernumber",
         "pk": 18,
         "fields": {
-            "customer": 1,
+            "customer": 7,
             "date": "2024-06-22"
         }
     }
