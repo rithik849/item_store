@@ -2,11 +2,15 @@ from django.test import TestCase
 from rest_framework.test import APITestCase, APIClient, api_settings
 import math
 
-from item_store.models import Customer, Review
+from item_store.models import Basket, Customer, Review
 from products.models import Product
 
 # Create your tests here.
 
+def assert_print(req,cond):
+    if not cond:
+        print(req.status_code,req.json())
+    assert(cond)
 
 class ReviewTestCase(APITestCase):
     fixtures = [
@@ -27,9 +31,6 @@ class ReviewTestCase(APITestCase):
         user.save()
         cls.user = user
 
-        
-    # 403 is unauthorised
-        
     def setUp(self):
         self.client = APIClient()
         product = Product.objects.get(name="Pen")
@@ -94,3 +95,178 @@ class ReviewTestCase(APITestCase):
         body = response.json()
         assert(response.status_code==403)
         assert(body['detail']=="You do not have permission to perform this action.")
+        
+class BasketTestCase(APITestCase):
+    fixtures = [
+        "products/fixtures/products.json",
+        "item_store/fixtures/basket.json",
+        "item_store/fixtures/customer.json",
+        "item_store/fixtures/ordernumber.json",
+        "item_store/fixtures/order.json",
+        "item_store/fixtures/review.json"
+    ]
+    
+    @classmethod
+    def setUpClass(cls):
+        super(BasketTestCase,cls).setUpClass()
+        user = Customer.objects.get(username='test', email='testuser@testuser.com')
+        user.set_password('testpassword123')
+        # Remember to save the model to the database
+        user.save()
+        cls.user = user
+        cls.client = APIClient()
+        cls.customer_id = user.id # type: ignore
+        
+    def setUp(self):
+        self.client.login(username='test',password='testpassword123')
+        
+    def tearDown(self):
+        self.client.logout()
+        
+    def test_list_basket_items(self):
+        response = self.client.get("/baskets/")
+        body = response.json()
+        items = list(Basket.objects.filter(customer__username='test'))
+        for i,basket_item in enumerate(body['results']):
+            assert(basket_item['customer']==self.customer_id)
+            url = basket_item['product']
+            response = self.client.get(url)
+            product = response.json()
+            assert(product['id'] == items[i].product.id) # type: ignore
+    
+    def test_get_basket_item(self):
+        product_id = 3
+        response = self.client.get(f"/baskets/{product_id}/")
+        item = Basket.objects.get(customer__username="test", product_id=product_id)
+        json = response.json()
+        assert(json['id']==item.id) # type: ignore
+        assert(json['customer']['username']==item.customer.username)
+        assert(json['quantity']==item.quantity)
+        assert(json['product']['id']==item.product.id) # type: ignore
+        
+    def test_add_item_to_basket_with_invalid_quantity(self):
+        request_json = {
+            'product' : 2,
+            'quantity' : 0
+        }
+        response = self.client.post(f"/baskets/", data = request_json)
+        assert(response.status_code==500)
+        
+    def test_add_new_item_to_basket(self):
+        request_json = {
+            'product' : 2,
+            'quantity' : 4
+        }
+        response = self.client.post(f"/baskets/", data = request_json)
+        assert(response.status_code==200)
+        json = response.json()
+        assert(json['success']==True)
+        
+    def test_add_current_item_to_basket(self):
+        request_json = {
+            'product' : 3,
+            'quantity' : 4
+        }
+        response = self.client.post(f"/baskets/", data = request_json)
+        assert(response.status_code==200)
+        json = response.json()
+        assert(json['success']==True)
+        
+    def test_add_current_item_to_basket_above_stock(self):
+        request_json = {
+            'product' : 1,
+            'quantity' : 456
+        }
+        response = self.client.post(f"/baskets/", data = request_json)
+        product = Product.objects.get(id = 1)
+        assert(response.status_code==400)
+        json = response.json()
+        assert(json['non_field_errors'][0]=="Not enough of product Book in stock")
+        assert(product.stock == 460)
+        
+    def test_delete_item_from_basket(self):
+        product_id = 1
+        response = self.client.delete(f"/baskets/{product_id}/")
+        assert(response.status_code==200)
+        json = response.json()
+        assert(json['success'] == True)
+        assert(json['detail'] == "Item removed from basket")
+        assert(Basket.objects.filter(product__id = 1).exists()==False)
+        
+    def test_delete_non_existent_item_from_basket(self):
+        product_id = 2
+        response = self.client.delete(f"/baskets/{product_id}/")
+        assert(response.status_code==404)
+        json = response.json()
+        assert(json['detail'] == "No Basket matches the given query.")
+        
+    def test_empty_basket(self):
+        response = self.client.delete(f"/baskets/")
+        assert_print(response, response.status_code==200)
+        json = response.json()
+        assert_print(response, json['detail'] == "All items removed from basket")
+        assert(Basket.objects.filter(customer__username='test').exists()==False)
+    
+    def test_increase_current_item_in_basket(self):
+        request_json = {
+            "quantity" : 4
+        }
+        product_id = 3
+        
+        response = self.client.patch(f"/baskets/{product_id}/", data = request_json)
+        assert(response.status_code==200)
+        json = response.json()
+        assert(json['detail']=="Product pencil quantity increased")
+        assert(Basket.objects.get(customer__username='test', product__id=product_id).quantity==9)
+    
+    def test_decrease_current_item_in_basket(self):
+        
+        request_json = {
+            "quantity" : -4
+        }
+        product_id = 3
+        
+        response = self.client.patch(f"/baskets/{product_id}/", data = request_json)
+        assert(response.status_code==200)
+        json = response.json()
+        assert(json['detail']=="Product pencil quantity decreased")
+        assert(Basket.objects.get(customer__username='test', product__id=product_id).quantity==1)
+        
+    def test_remove_more_of_current_item_than_in_basket(self):
+        request_json = {
+            "quantity" : -6
+        }
+        product_id = 3
+        
+        response = self.client.patch(f"/baskets/{product_id}/", data = request_json)
+        assert(response.status_code==400)
+        json = response.json()
+        assert(json['non_field_errors'][0]=="Basket quantity is less than the quantity to remove.")
+        
+    def test_remove_all_of_current_item_in_basket(self):
+        request_json = {
+            "quantity" : -5
+        }
+        product_id = 3
+        
+        response = self.client.patch(f"/baskets/{product_id}/", data = request_json)
+        assert(response.status_code==200)
+        json = response.json()
+        
+        assert_print(response,json['detail']=="Product pencil quantity decreased")
+        assert(Basket.objects.filter(customer__username='test', product__id=product_id).exists()==False)
+        
+    def test_keep_current_item_quantity_in_basket(self):
+        request_json = {
+            "quantity" : 0
+        }
+        product_id = 3
+        
+        response = self.client.patch(f"/baskets/{product_id}/", data = request_json)
+        assert(response.status_code==200)
+        json = response.json()
+        assert(json['detail']=="Product pencil quantity unchanged")
+        assert(Basket.objects.get(customer__username='test', product__id=product_id).quantity==5)
+        
+
+        

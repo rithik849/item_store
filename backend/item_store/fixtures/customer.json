@@ -70,5 +70,23 @@
             "groups": [],
             "user_permissions": []
         }
+    },
+    {
+        "model": "item_store.customer",
+        "pk": 7,
+        "fields": {
+            "last_login": "2024-06-18T21:58:02.168Z",
+            "is_superuser": false,
+            "first_name": "",
+            "last_name": "",
+            "is_staff": false,
+            "is_active": true,
+            "date_joined": "2024-06-18T09:51:27.489Z",
+            "username": "test",
+            "email": "testuser@testuser.com",
+            "password": "pbkdf2_sha256$600000$FgwrUjIuFbf761W5H1uSF1$axh2gI/L42JBtmGu+gNwNIbpzoB8Jadpnczoka7H2Ug=",
+            "groups": [],
+            "user_permissions": []
+        }
     }
 ]

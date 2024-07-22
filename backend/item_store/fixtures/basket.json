@@ -3,9 +3,28 @@
         "model": "item_store.basket",
         "pk": 9,
         "fields": {
-            "customer": 5,
+            "customer": 7,
             "product": 3,
             "quantity": 5
         }
+    },
+    {
+        "model": "item_store.basket",
+        "pk": 10,
+        "fields": {
+            "customer": 7,
+            "product": 1,
+            "quantity": 5
+        }
+    },
+    {
+        "model": "item_store.basket",
+        "pk": 11,
+        "fields": {
+            "customer": 1,
+            "product": 2,
+            "quantity": 5
+        }
     }
+
 ]
