@@ -96,11 +96,20 @@ class BasketSerializer(serializers.ModelSerializer):
         entry.save()
         return entry
 
-
+class BasketHyperLinkedIdentityField(serializers.HyperlinkedIdentityField):
+    view_name = 'basket-detail'
+    
+    def get_url(self,obj,view_name,request,format):
+        url_kwargs = {
+            "id" : obj.product.id
+        }
+        return reverse(view_name, kwargs = url_kwargs, request = request, format = format)
+        
+        
 class BasketListViewSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='basket-detail',lookup_field='id',read_only=False)
+    url = BasketHyperLinkedIdentityField(view_name='basket-detail', read_only=True)
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
-    product = serializers.HyperlinkedRelatedField(view_name='product-detail',lookup_field='id',read_only=True)
+    product = serializers.HyperlinkedRelatedField(view_name='product-detail', lookup_field='id', read_only=True)
     
     class Meta:
         model = Basket
