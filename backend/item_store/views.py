@@ -85,7 +85,7 @@ class BasketViewSet(
         self.check_object_permissions(self.request, obj)
         return obj
     
-    def get(self,request,id=None):
+    def retrieve(self,request,id=None):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data,status=status.HTTP_200_OK)
