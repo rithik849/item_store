@@ -100,7 +100,7 @@ class BasketSerializer(serializers.ModelSerializer):
 class BasketListViewSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='basket-detail',lookup_field='id',read_only=False)
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
-    product = serializers.HyperlinkedRelatedField(view_name='product-detail',read_only=True)
+    product = serializers.HyperlinkedRelatedField(view_name='product-detail',lookup_field='id',read_only=True)
     
     class Meta:
         model = Basket
@@ -164,7 +164,7 @@ class RemoveFromBasketSerializer(serializers.ModelSerializer):
         # Remove if we have no items in the basket
         if instance.quantity==0:
             instance.delete()
-            return None
+            return instance
         instance.save()
         return instance
 

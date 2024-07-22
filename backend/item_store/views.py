@@ -66,7 +66,6 @@ class ReviewViewSet(
 # Basket: Customers should be able to view their basket, add items to their basket and remove items from their basket.
 # @method_decorator(csrf_protect,name='dispatch')
 class BasketViewSet(
-    RetrieveModelMixin,
     viewsets.GenericViewSet
     ):
     serializer_class = BasketSerializer
@@ -76,6 +75,20 @@ class BasketViewSet(
     
     def get_queryset(self):
         return Basket.objects.filter(customer=self.request.user) # type: ignore
+    
+    def get_object(self):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        filter = {}
+        filter["product__id"] = self.kwargs[self.lookup_field]
+        obj = get_object_or_404(queryset,**filter)
+        self.check_object_permissions(self.request, obj)
+        return obj
+    
+    def get(self,request,id=None):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data,status=status.HTTP_200_OK)
     
     def list(self, request):
         customer = self.request.user
@@ -101,25 +114,20 @@ class BasketViewSet(
         serializer.save()
         return Response({"success" : True,"detail" : "Product "+str(entry_for_product[0].product)+" added to basket"},status=status.HTTP_200_OK)
     
-    def delete(self,request, id=None):
-        if id == None:
-            raise APIException("Need to choose a basket item to delete.")
-        print(f"PRIMARY KEY : {id}")
+    def delete(self, request, id=None):
+        if id==None:
+            items = self.get_queryset()
+            items.delete()
+            return Response({"success":True, "detail": "All items removed from basket"}, status=status.HTTP_200_OK)
         user : Customer = request.user
         item : Basket = self.get_object()
         item.delete()
-        return Response({"detail":True, "detail": "Item removed from basket"})
-    
-    @action(detail=False,methods=['DELETE'])
-    def empty_basket(self,request):
-        items = self.get_queryset()
-        items.delete()
-        return Response("Success",status=status.HTTP_200_OK)
+        return Response({"success":True, "detail": "Item removed from basket"}, status=status.HTTP_200_OK)
         
     def partial_update(self, request, id = None):
         user: Customer = self.request.user # type: ignore
         basket: BaseManager[Basket]= self.get_queryset()
-        entry_for_product = basket.get(id = id)
+        entry_for_product = self.get_object()
         quantity = request.data['quantity']
         # We either increase quantity in basket or decrease quantity in basket. Product quantity gets updated at order
         if quantity < 0:
