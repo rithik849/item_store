@@ -53,7 +53,7 @@ class OrderNumber(models.Model):
     date = models.DateField(default=datetime.datetime.today)
     
     def __str__(self):
-        return f"{self.id} {self.date} {self.status}" # type: ignore
+        return f"{self.id} {self.date}" # type: ignore
     
 class Order(models.Model):
     order_number = models.ForeignKey(OrderNumber, on_delete=models.CASCADE, null=True)

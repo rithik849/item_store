@@ -191,38 +191,32 @@ class OrderViewSet(
         """
         user : Customer = self.request.user # type: ignore
         items = Basket.objects.filter(customer=user) # type: ignore
-        print('here '+str(items))
         
         if items.count()==0:
             raise APIException("You do not have items in your basket.")
         
-        print('here2')
         
         # Need to validate against products incase quantities have changed
-        
+        under_stock_response = []
         for item in items:
             if item.product.stock < item.quantity:
-                raise APIException("Not enough of "+str(item.product)+" in stock")
+                under_stock_response.append("Not enough of "+str(item.product)+" in stock")
+        if len(under_stock_response)>0:
+            raise APIException(under_stock_response)
             
         
-        print('here3')
         
         
         # Reduce the stock of each product
         for item in items:
-            print(item)
             product = item.product
             product_serializer = UpdateProductSerializer(instance=product, data = {"stock" : -item.quantity},partial=True)
             product_serializer.is_valid(raise_exception=True)
-            print('here4')
             product_serializer.save()
-        
-        print('here4')
 
         # Create the order
         order_ref = OrderNumber(customer=user) #type: ignore
         order_ref.save()
-        print(list(items.values()))
         serializer = self.get_serializer_class()
         serializer = serializer(data=list(items.values()), 
                                         context = {'order_id' : order_ref}, # type: ignore
@@ -232,6 +226,5 @@ class OrderViewSet(
         
         # Remove items from the basket
         items.delete()
-        print("here5")
         
         return Response({"success" : True, "detail" : "Order has been made"},status=status.HTTP_200_OK)

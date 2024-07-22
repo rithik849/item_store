@@ -211,8 +211,6 @@ class CreateOrderSerializer(serializers.Serializer):
     def create(self,validated_data):
         # Need to have order num to create order
         order_id = self.context['order_id']
-        print("HERE")
-        print(validated_data)
         order = Order(order_number = order_id,
                 product = validated_data['product_id'],
                 quantity = validated_data['quantity'])
