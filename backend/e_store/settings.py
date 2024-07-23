@@ -50,11 +50,19 @@ INSTALLED_APPS = [
     'item_store',
     'products',
     'user_auth',
-    'allauth'
+    'allauth',
+    'corsheaders'
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000"
+]
+
+ALLOWED_HOSTS = ['localhost','testserver']
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -218,11 +226,8 @@ SIMPLE_JWT = {
 }
 
 # # settings.py
-# CORS_ORIGIN_ALLOW_ALL = True
+#CORS_ORIGIN_ALLOW_ALL = True
 # CSRF_USE_SESSIONS = False
 # CSRF_COOKIE_HTTPONLY = False  # this is the default, and should be kept this way
 # CSRF_COOKIE_NAME = "csrftoken"
 # CSRF_HEADER_NAME = "X-CSRFToken"
-
-
-ALLOWED_HOSTS = ['localhost','testserver']
