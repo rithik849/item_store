@@ -54,9 +54,27 @@ INSTALLED_APPS = [
     'corsheaders'
 ]
 
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    "access-control-allow-credentials",
+    "access-control-allow-headers",
+    "Set-Cookie"
+)
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000"
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000'
+]
+
+# CSRF_COOKIE_SAMESITE='Strict'
+SESSION_COOKIE_SAMESITE='Strict'
+# CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = False
+CORS_ALLOW_CREDENTIALS = True
 
 ALLOWED_HOSTS = ['localhost','testserver']
 
@@ -224,10 +242,3 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
-
-# # settings.py
-#CORS_ORIGIN_ALLOW_ALL = True
-# CSRF_USE_SESSIONS = False
-# CSRF_COOKIE_HTTPONLY = False  # this is the default, and should be kept this way
-# CSRF_COOKIE_NAME = "csrftoken"
-# CSRF_HEADER_NAME = "X-CSRFToken"
