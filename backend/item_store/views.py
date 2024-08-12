@@ -35,6 +35,19 @@ class ReviewViewSet(
     serializer_class = ReviewSerializer
     lookup_fields = ['customer_username','product_id']
     
+    
+    def get_reviews_for_product(self,request,product_id=None):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        query_filter = {}
+        query_filter['product_id'] = self.kwargs['product_id']
+        queryset = queryset.filter(**query_filter)
+        serializer = ReviewSerializer(queryset,many=True,context = {"request":request})
+        
+        return paginate(request,serializer.data,self.paginator)
+            
+        
+        
     def get_object(self):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)

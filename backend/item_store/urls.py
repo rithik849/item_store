@@ -15,6 +15,13 @@ class ReviewRouter(DefaultRouter):
             initkwargs={'suffix' : "List"}
         ),
         Route(
+            url=r'^{prefix}/(?P<product_id>[0-9]+)/$',
+            mapping={'get':'get_reviews_for_product'},
+            name = '{basename}-list',
+            detail=True,
+            initkwargs={'suffix' : "List"}
+        ),
+        Route(
             url=r'^{prefix}/(?P<customer_username>[-a-zA-Z0-9_]+)/(?P<product_id>[0-9]+)/$',
             mapping={'get':'retrieve','delete':'destroy'},
             name = '{basename}-detail',
