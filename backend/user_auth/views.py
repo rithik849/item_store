@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from collections import OrderedDict
 from item_store.serializers import CustomerSerializer
-from e_store.permissions import IsNotAuthenticated
+from e_store.permissions import CustomerLogInViewPermission, IsNotAuthenticated
 from item_store.models import Customer
 from user_auth.serializers import SignUpSerializer, LogInSerializer, UpdateDetailsSerializer, UpdatePasswordSerializer
     
@@ -40,8 +40,8 @@ class CustomerChangeDetailsView(GenericAPIView):
         if serializer.is_valid():
             serializer.save()
             json = CustomerSerializer(serializer.instance)
-            return Response({'success' : True, 'object': json.data}, status=status.HTTP_200_OK)
-        return Response({"success" : False, 'detail': 'Some details are invalid'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'success' : True, 'object': json.data, 'detail':'User data changed successfully'}, status=status.HTTP_200_OK)
+        return Response({"success" : False, 'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     
 class CustomerChangePasswordView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
@@ -61,20 +61,26 @@ class CustomerChangePasswordView(GenericAPIView):
         if serializer.is_valid():
             serializer.save()
             json = CustomerSerializer(serializer.instance)
-            return Response({'success' : True, 'object': json.data}, status=status.HTTP_200_OK)
-        return Response({"success" : False, 'detail': 'Some details are invalid'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'success' : True, 'object': json.data, 'detail': 'Password has been changed successfully.'}, status=status.HTTP_200_OK)
+        return Response({"success" : False, 'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
     
 class CustomerLogInView(GenericAPIView):
-    permission_classes = (IsNotAuthenticated,)
+    permission_classes = (CustomerLogInViewPermission,)
     serializer_class = LogInSerializer
+    
+    def get(self, request):
+        if request.user.is_authenticated:
+            json = CustomerSerializer(request.user)
+            return Response({'is_authenticated' : True, 'customer' : json.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'is_authenticated' : False}, status=status.HTTP_200_OK)
     
     def post(self, request):
         try:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             data = serializer.validated_data
-            
             # if (not (type(data) is OrderedDict)) or (not ('email' in data)):
             #     raise Exception
             # user : Customer = Customer.objects.get(email=email)
@@ -83,10 +89,10 @@ class CustomerLogInView(GenericAPIView):
             if user==None:
                 raise Exception
             login(request, user)
+            json = CustomerSerializer(user)
             return Response({
-                'success' : True,
-                'username': user.get_username(),
-                'email': user.email
+                "success" : True,
+                "customer": json.data
                 },status=status.HTTP_200_OK)
         except:
             return Response({'success' : False,'detail' : 'Username and Password not found'}, status=status.HTTP_401_UNAUTHORIZED)
