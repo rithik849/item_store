@@ -5,8 +5,14 @@ class IsNotAuthenticated(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        return bool(request.user and not request.user.is_authenticated)
+        return bool((request.user and not request.user.is_authenticated))
     
+class CustomerLogInViewPermission(permissions.BasePermission):
+    
+    def has_permission(self, request, view):
+        if request.method == 'POST':
+            return bool((request.user and not request.user.is_authenticated))
+        return True
     
 class ReviewPermission(permissions.BasePermission):
     
