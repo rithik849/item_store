@@ -5,7 +5,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, Toke
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.password_validation import validate_password as default_password_validation
 
 # # Serializers define the API representation.
 # class CustomerTokenPairSerializer(TokenObtainPairSerializer):
@@ -64,20 +64,28 @@ class UpdateDetailsSerializer(BaseSerializer):
     
 class UpdatePasswordSerializer(BaseSerializer):
     queryset = Customer.objects.all()
-    new_password = serializers.CharField(max_length=255,required=True)
-    confirm_password = serializers.CharField(max_length=255,required=True)
+    password = serializers.CharField(max_length=255,required=True, validators=[default_password_validation]
+                                         , error_messages = {"required" : "Password is unspecified", "blank": "Password can not be blank."}
+                                         )
+    confirm_password = serializers.CharField(max_length=255,required=True
+                                             , error_messages = {"required" : "Confirm Password is unspecified", "blank": "Confirm Password can not be blank."}
+                                             )
     
     class Meta:
         model = Customer
-        fields = ['new_password', 'confirm_password']
+        fields = ['password', 'confirm_password']
+        extra_kwargs = {
+            "new_password": {"error_messages" : {"required" : "Password is unspecified", "blank": "Password can not be blank."}},
+            "confirm_password": {"error_messages" : {"required" : "Confirm password is unspecified", "blank": "Confirm password can not be blank."}}
+        }
         
     def validate(self, attrs):
-        if attrs['new_password'] != attrs['confirm_password']:
+        if attrs['password'] != attrs['confirm_password']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
         return attrs
     
     def update(self, instance : Customer, validated_data):
-        instance.password = make_password(validated_data['new_password'])
+        instance.password = make_password(validated_data['password'])
         instance.save()
         return instance
     
@@ -90,18 +98,18 @@ class LogInSerializer(BaseSerializer):
         model = Customer
         fields = ['username','password']
     
-    def validate(self, attrs):
-        user_obj = None
-        username = attrs['username']
-        password = attrs['password']
-        if username and password:
-            try:
-                user_obj = Customer.objects.get(username=username)
-                if not user_obj.check_password(password):
-                    raise Exception
-            except:
-                raise serializers.ValidationError('Incorrect username or password')
-        return attrs
+    # def validate(self, attrs):
+    #     user_obj = None
+    #     username = attrs['username']
+    #     password = attrs['password']
+    #     if username and password:
+    #         try:
+    #             user_obj = Customer.objects.get(username=username)
+    #             if not user_obj.check_password(password):
+    #                 raise Exception
+    #         except:
+    #             raise serializers.ValidationError('Incorrect username or password')
+        # return attrs
     
 class SignUpSerializer(BaseSerializer):
     username = serializers.CharField(
@@ -113,7 +121,7 @@ class SignUpSerializer(BaseSerializer):
             validators=[UniqueValidator(queryset=Customer.objects.all(),message='An account with this email already exists. Please choose another email.')]
     )
 
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password = serializers.CharField(write_only=True, required=True, validators=[default_password_validation])
     password2 = serializers.CharField(write_only=True, required=True)
     
     class Meta:
