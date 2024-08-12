@@ -1,37 +1,44 @@
 import {useState, useEffect} from "react"
+import React from "react";
+import PaginatedView from "./components/paginated_component";
+import Product from "./components/product_card";
+import {LogInView} from "./Authentication/LogInView"
+import {LogOutView} from "./Authentication/LogOutView";
+import { ChangeDetailsView } from "./Authentication/ChangeDetailsView";
+import { ChangePasswordView } from "./Authentication/ChangePasswordView";
+import {AuthProvider, Authenticated, NotAuthenticated} from "./components/is_authenticated_component"
+import {CookiesProvider} from "react-cookie"
+import {createBrowserRouter, createRoutesFromElements, Route, RouterProvider} from 'react-router-dom'
+import {ProfileView} from './Authentication/ProfileView'
+
 
 function App() {
 
   const [state, setState]= useState(null);
-  const [url, setUrl] = useState("http://localhost:8000/products/?page=1")
 
-  useEffect(() => {
-    const response = fetch(url)
-    .then(res => res.json())
-    .then(json => {
-      setState(json);
-    })
-    .catch(res => console.log(res))
-
-
-  },[url])
+  const router = createBrowserRouter(
+    createRoutesFromElements(
+        <Route>
+            <Route index path="/login" element = {<LogInView/>} />
+            <Route path = "/logout" element = {<LogOutView/>} />
+            <Route path = "/change-details" element = {<ChangeDetailsView/>} />
+            <Route path = "/change-password" element = {<ChangePasswordView/>} />
+            <Route path = "/profile" element = {<ProfileView/>}/>
+        </Route>
+))
 
   return (
-    <>
-    <div className="App">
-      {state && JSON.stringify(state['results'])}
-    </div>
-    {
-      ((state!=null && state['next']!=null)) && 
-      <button onClick={()=>{setUrl(state['next'])}}>{"Next"}</button>
-    }
-    {
-      ((state!=null && state['previous']!=null)) && 
-      <button onClick={()=>{setUrl(state['previous'])}}>{"Prev"}</button>
-    }
-    </>
+    <React.StrictMode>
+      <AuthProvider>
+        <CookiesProvider>
+          <RouterProvider router={router}/>
+        </CookiesProvider>
+      </AuthProvider>
+    </React.StrictMode>
+    
+    //<PaginatedView endpoint="http://localhost:8000/products/?page=1" item={(key,values)=> <Product key={key} values={values}/>} />
+  )
 
-  );
-}
+};
 
 export default App;
