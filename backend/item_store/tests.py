@@ -65,6 +65,35 @@ class ReviewTestCase(APITestCase):
         assert(response.status_code==200)
         assert(body['customer']['username'] == 'test')
         assert(body['product']['id'] == product.id) # type: ignore
+        
+    def test_get_reviews_by_product(self):
+        product : Product = Product.objects.get(name="Pen")
+        response = self.client.get("/reviews/"+str(product.id)+"/") #type: ignore
+        body = response.json()
+        assert(response.status_code==200)
+        assert(body['count']==3)
+        
+        PAGE_SIZE : int = api_settings.PAGE_SIZE # type: ignore
+        page_count = math.ceil(body['count']/PAGE_SIZE)
+        last_page_review_count = body['count']%PAGE_SIZE
+        
+        for i in range(1,page_count):
+            response = self.client.get("/reviews/"+str(product.id)+"/?page="+str(i)) #type: ignore
+            assert(response.status_code==200)
+            body = response.json()
+            body = body['results']
+            assert(len(body)==PAGE_SIZE)
+            for item in range(PAGE_SIZE):
+                assert(body[0]['product']['id']==product.id) # type: ignore
+                
+            
+        response = self.client.get("/reviews/"+str(product.id)+"/?page="+str(page_count)) # type: ignore
+        assert(response.status_code==200)
+        body = response.json()
+        body = body['results']
+        assert(len(body)==last_page_review_count)
+        for item in range(last_page_review_count):
+            assert(body[0]['product']['id']==product.id) # type: ignore
 
     def test_create_review(self):
         # Check unauthenticated users cannot create reviews
