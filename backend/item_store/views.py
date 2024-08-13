@@ -13,7 +13,7 @@ from e_store.permissions import IsCustomerPermission, IsOwnerPermission, ReviewP
 from products.models import Product
 from products.serializers import UpdateProductSerializer
 from item_store.models import Order, OrderNumber, Review, Basket, Customer
-from item_store.serializers import BasketListViewSerializer, CreateOrderSerializer, CustomerSerializer, OrderBasketSerializer, OrderNumberSerializer, OrderSerializer, RemoveFromBasketSerializer, CreateReviewSerializer,ReviewSerializer, BasketSerializer, AddToBasketSerializer
+from item_store.serializers import BasketListViewSerializer, CreateOrderSerializer, CustomerSerializer, OrderBasketSerializer, OrderNumberSerializer, OrderSerializer, CreateReviewSerializer,ReviewSerializer, BasketSerializer, ChangeBasketQuantitySerializer
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, requires_csrf_token
 from django.utils.decorators import method_decorator
 
@@ -111,7 +111,7 @@ class BasketViewSet(
         return paginate(request,serializer.data,self.paginator)
     
     def create(self, request, *args,**kwargs):
-        serializer_class = AddToBasketSerializer
+        serializer_class = ChangeBasketQuantitySerializer
         # Get the authenticated users basket and search if the product exists in the basket
         user: Customer = self.request.user # type: ignore
         baskets: BaseManager[Basket]= self.get_queryset()
@@ -121,7 +121,7 @@ class BasketViewSet(
         if entry_for_product.count() == 0:
             serializer = serializer_class(data={'customer' : user.id, 'product' : request.data['product'], 'quantity' : request.data['quantity']}) # type: ignore
         else:
-            serializer = serializer_class(instance = entry_for_product[0], data = {'quantity' : request.data['quantity']}, partial = True)
+            serializer = ChangeBasketQuantitySerializer(instance = entry_for_product[0], data = {'quantity' : request.data['quantity']}, partial = True)
         
         serializer.is_valid(raise_exception = True)
         serializer.save()
@@ -141,19 +141,21 @@ class BasketViewSet(
         user: Customer = self.request.user # type: ignore
         basket: BaseManager[Basket]= self.get_queryset()
         entry_for_product = self.get_object()
+        prev_quantity = entry_for_product.quantity
         quantity = request.data['quantity']
         # We either increase quantity in basket or decrease quantity in basket. Product quantity gets updated at order
-        if quantity < 0:
-            serializer = RemoveFromBasketSerializer(instance = entry_for_product, data = {'quantity' : -quantity}, partial = True)
-        else:
-            serializer = AddToBasketSerializer(instance = entry_for_product, data = {'quantity' : quantity}, partial=True)
+        # if quantity < 0:
+        #     serializer = RemoveFromBasketSerializer(instance = entry_for_product, data = {'quantity' : -quantity}, partial = True)
+        # else:
+        #     serializer = ChangeBasketQuantitySerializer(instance = entry_for_product, data = {'quantity' : quantity}, partial=True)
+        serializer = ChangeBasketQuantitySerializer(instance = entry_for_product, data = {'quantity' : quantity}, partial=True)
         serializer.is_valid(raise_exception = True)
         serializer.save()
         
         change = "unchanged"
-        if quantity < 0:
+        if quantity < prev_quantity:
             change = "decreased"
-        elif quantity > 0:
+        elif quantity > prev_quantity:
             change = "increased"
             
         return Response({"success" : True,"detail" : "Product "+str(entry_for_product.product)+f" quantity {change}"},status=status.HTTP_200_OK)

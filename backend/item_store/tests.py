@@ -191,6 +191,8 @@ class BasketTestCase(APITestCase):
         assert(response.status_code==200)
         json = response.json()
         assert(json['success']==True)
+        item : Basket = Basket.objects.get(customer=self.user , product__id=request_json['product'])
+        assert(item.quantity == request_json['quantity'])
         
     def test_add_current_item_to_basket(self):
         request_json = {
@@ -205,7 +207,7 @@ class BasketTestCase(APITestCase):
     def test_add_current_item_to_basket_above_stock(self):
         request_json = {
             'product' : 1,
-            'quantity' : 456
+            'quantity' : 461
         }
         response = self.client.post(f"/baskets/", data = request_json)
         product = Product.objects.get(id = 1)
@@ -239,7 +241,7 @@ class BasketTestCase(APITestCase):
     
     def test_increase_current_item_in_basket(self):
         request_json = {
-            "quantity" : 4
+            "quantity" : 6
         }
         product_id = 3
         
@@ -247,12 +249,12 @@ class BasketTestCase(APITestCase):
         assert(response.status_code==200)
         json = response.json()
         assert(json['detail']=="Product pencil quantity increased")
-        assert(Basket.objects.get(customer__username='test', product__id=product_id).quantity==9)
+        assert(Basket.objects.get(customer__username='test', product__id=product_id).quantity==6)
     
     def test_decrease_current_item_in_basket(self):
         
         request_json = {
-            "quantity" : -4
+            "quantity" : 4
         }
         product_id = 3
         
@@ -260,22 +262,22 @@ class BasketTestCase(APITestCase):
         assert(response.status_code==200)
         json = response.json()
         assert(json['detail']=="Product pencil quantity decreased")
-        assert(Basket.objects.get(customer__username='test', product__id=product_id).quantity==1)
+        assert(Basket.objects.get(customer__username='test', product__id=product_id).quantity==4)
         
-    def test_remove_more_of_current_item_than_in_basket(self):
+    def test_remove_negative_amount_from_basket(self):
         request_json = {
-            "quantity" : -6
+            "quantity" : -1
         }
         product_id = 3
         
         response = self.client.patch(f"/baskets/{product_id}/", data = request_json)
         assert(response.status_code==400)
         json = response.json()
-        assert(json['non_field_errors'][0]=="Basket quantity is less than the quantity to remove.")
+        assert(json['non_field_errors'][0]=="Can not have a negative quantity of an item.")
         
     def test_remove_all_of_current_item_in_basket(self):
         request_json = {
-            "quantity" : -5
+            "quantity" : 0
         }
         product_id = 3
         
@@ -288,7 +290,7 @@ class BasketTestCase(APITestCase):
         
     def test_keep_current_item_quantity_in_basket(self):
         request_json = {
-            "quantity" : 0
+            "quantity" : 5
         }
         product_id = 3
         

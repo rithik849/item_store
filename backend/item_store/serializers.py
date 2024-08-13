@@ -74,6 +74,12 @@ class CreateReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+        
+    def validate(self,data):
+        has_review = Review.objects.filter(customer=data['customer'], product=data['product']).exists()
+        if has_review:
+            raise serializers.ValidationError("Customer already has a review for this product")
+        return data
     
 class BasketSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer()
@@ -85,7 +91,6 @@ class BasketSerializer(serializers.ModelSerializer):
         
     # Validate that quantity is less than  or equal to what is in stock
     def validate(self, data):
-        print("HERE " + str(data))
         product = Product.objects.get(id = data['product'])
         if product.stock < data['quantity']:
             raise serializers.ValidationError("Not enough of product " +str(product.name)+ " in stock")
@@ -126,7 +131,7 @@ class OrderBasketSerializer(BasketSerializer):
         fields = "__all__"
         
         
-class AddToBasketSerializer(serializers.ModelSerializer):
+class ChangeBasketQuantitySerializer(serializers.ModelSerializer):
     
     class Meta:
         model=Basket
@@ -140,7 +145,10 @@ class AddToBasketSerializer(serializers.ModelSerializer):
         else:
             product = data['product']
             initial_quantity = 0
-        if product.stock < initial_quantity + data['quantity']:
+        if data['quantity'] < 0:
+            raise serializers.ValidationError("Can not have a negative quantity of an item.")
+        # if product.stock < initial_quantity + data['quantity']:
+        if product.stock < data['quantity']:
             raise serializers.ValidationError("Not enough of product " +str(product.name)+ " in stock")
         return data
     
@@ -149,34 +157,13 @@ class AddToBasketSerializer(serializers.ModelSerializer):
             if attr!='quantity':
                 instance[attr] = value
         if 'quantity' in validated_data:
-            instance.quantity += validated_data['quantity'] 
-        instance.save()
-        return instance
-        
-class RemoveFromBasketSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = Basket
-        fields = '__all__'
-        
-    # Validate that quantity is less than  or equal to what is in stock
-    def validate(self, data):
-        basket : Basket = self.instance # type: ignore
-        initial_quantity = basket.quantity
-        if ((initial_quantity - data['quantity']) < 0):
-            raise serializers.ValidationError("Basket quantity is less than the quantity to remove.")
-        return data
-    
-    def update(self, instance, validated_data):
-        if 'quantity' in validated_data:
-            instance.quantity -= validated_data['quantity']
-        # Remove if we have no items in the basket
-        if instance.quantity==0:
+            # instance.quantity += validated_data['quantity'] 
+            instance.quantity = validated_data['quantity']
+        if (instance.quantity==0):
             instance.delete()
-            return instance
-        instance.save()
+        else:
+            instance.save()
         return instance
-
 
 class OrderSerializer(serializers.ModelSerializer):
     product = ProductSerializer()
