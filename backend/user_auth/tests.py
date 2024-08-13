@@ -79,16 +79,16 @@ class CustomerAuthTestCase(APITestCase):
     
     def test_change_password_view(self):
         val = self.client.login(username='test',password='testpassword123')
-        new_password = 'newpassword'
-        response = self.client.patch('/customers/change-password/', data= {'confirm_password' : new_password, 'new_password' : new_password})
+        new_password = 'newpassword123'
+        response = self.client.patch('/customers/change-password/', data= {'password' : new_password, 'confirm_password' : new_password})
         self.client.logout()
         val = self.client.login(username='test',password=new_password)
         assert(val==True)
         
     def test_change_password_invalid_view(self):
         val = self.client.login(username='test',password='testpassword123')
-        new_password = 'newpassword'
-        response = self.client.patch('/customers/change-password/', data= {'confirm_password' : new_password, 'new_password' : 'differemt'})
+        new_password = 'newpassword123'
+        response = self.client.patch('/customers/change-password/', data= {'password' : new_password, 'confirm_password' : 'differemt'})
         assert(response.status_code == 400)
         self.client.logout()
         val = self.client.login(username='test',password=new_password)

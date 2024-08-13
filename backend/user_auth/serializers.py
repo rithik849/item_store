@@ -75,7 +75,7 @@ class UpdatePasswordSerializer(BaseSerializer):
         model = Customer
         fields = ['password', 'confirm_password']
         extra_kwargs = {
-            "new_password": {"error_messages" : {"required" : "Password is unspecified", "blank": "Password can not be blank."}},
+            "password": {"error_messages" : {"required" : "Password is unspecified", "blank": "Password can not be blank."}},
             "confirm_password": {"error_messages" : {"required" : "Confirm password is unspecified", "blank": "Confirm password can not be blank."}}
         }
         
