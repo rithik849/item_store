@@ -120,12 +120,14 @@ class BasketViewSet(
             raise APIException("Can only have a positive quantity of a product")
         if entry_for_product.count() == 0:
             serializer = serializer_class(data={'customer' : user.id, 'product' : request.data['product'], 'quantity' : request.data['quantity']}) # type: ignore
+            serializer.is_valid(raise_exception = True)
+            serializer.save()
+            return Response({"success" : True,"detail" : "Product "+str(entry_for_product[0].product)+" added to basket"},status=status.HTTP_200_OK)
         else:
             serializer = ChangeBasketQuantitySerializer(instance = entry_for_product[0], data = {'quantity' : request.data['quantity']}, partial = True)
-        
-        serializer.is_valid(raise_exception = True)
-        serializer.save()
-        return Response({"success" : True,"detail" : "Product "+str(entry_for_product[0].product)+" added to basket"},status=status.HTTP_200_OK)
+            serializer.is_valid(raise_exception = True)
+            serializer.save()
+            return Response({"success" : True,"detail" : "Product "+str(entry_for_product[0].product)+" added to basket"},status=status.HTTP_200_OK)
     
     def delete(self, request, id=None):
         if id==None:

@@ -110,6 +110,11 @@ class ReviewTestCase(APITestCase):
         # Check we can only have one review per product for a given user
         response = self.client.post("/reviews/",data={"customer":self.user.id, "product" : product.id, "rating" : 3, "comment" : "Test review"}) # type: ignore
         assert(response.status_code==400)
+        
+        # Create review for product that does not exist
+        response = self.client.post("/reviews/",data={"customer":self.user.id, "product" : 10, "rating" : 3, "comment" : "Test review"}) # type: ignore
+        print(response.status_code)
+        assert(response.status_code==400)
     
     def test_destroy_review(self):
         pen : Product = Product.objects.get(name="Pen")

@@ -54,7 +54,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ('username', 'email')
+        fields = ('username', 'email','total_basket_cost')
         
 
 class ReviewSerializer(serializers.HyperlinkedModelSerializer):
@@ -74,6 +74,13 @@ class CreateReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=model.objects.all(),
+                fields=('customer', 'product'),
+                message="Customer already has a review for this product."
+            )
+        ]
         
     def validate(self,data):
         has_review = Review.objects.filter(customer=data['customer'], product=data['product']).exists()
@@ -112,9 +119,9 @@ class BasketHyperLinkedIdentityField(serializers.HyperlinkedIdentityField):
         
         
 class BasketListViewSerializer(serializers.ModelSerializer):
-    url = BasketHyperLinkedIdentityField(view_name='basket-detail', read_only=True)
-    customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
-    product = serializers.HyperlinkedRelatedField(view_name='product-detail', lookup_field='id', read_only=True)
+    url = BasketHyperLinkedIdentityField(view_name = 'basket-detail', read_only=True)
+    customer = serializers.PrimaryKeyRelatedField(queryset = Customer.objects.all())
+    product = serializers.HyperlinkedRelatedField(view_name = 'product-detail', lookup_field='id', read_only=True)
     
     class Meta:
         model = Basket
