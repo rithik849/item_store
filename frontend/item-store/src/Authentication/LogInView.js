@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import {Cookies, useCookies} from "react-cookie"
 import {NotAuthenticated, useAuth} from "../components/is_authenticated_component"
+import {url} from "../constants"
 
 export function LogInView(){
 
-    const {user, login, logout} = useAuth()
+    const {user, isAuthenticated, login, logout} = useAuth()
 
     const [formData, setFormData] = useState({
         'username' : "",
@@ -15,7 +16,7 @@ export function LogInView(){
 
     async function handleSubmit(event){
         event.preventDefault();
-        fetch("http://localhost:8000/customers/login/",
+        fetch(url+"/customers/login/",
             {
                 method : "POST",
                 mode : 'cors',

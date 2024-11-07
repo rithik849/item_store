@@ -1,6 +1,4 @@
 import {useState, useEffect} from "react"
-import Product from "./product_card"
-
 
 function PaginatedView({endpoint,item}){
 

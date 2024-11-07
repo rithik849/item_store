@@ -1,49 +1,14 @@
 import {useState, useEffect, useLayoutEffect, useRef, useMemo, useContext, createContext} from "react"
 import { ErrorView } from "./errorView"
 import {Cookies, useCookies} from "react-cookie"
+import {url} from "../constants"
 
 const AuthContext = createContext();
-export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [isAuthenticated, setAuthenticated] = useState(null)
+export const AuthProvider = (props) => {
+    const [user, setUser] = useState(props.user)
+    const [isAuthenticated, setAuthenticated] = useState(props.isAuthenticated)
     const [cookies, setCookies] = useCookies()
-
-    useEffect(() => {
-        console.log("EFFECT MAIN")
-        const controller = new AbortController();
-        const abort_signal = controller.signal
-
-        fetch("http://localhost:8000/customers/login/",{
-            "method":"GET",
-            "Content-Type":"application/json",
-            "signal":abort_signal,
-            "credentials":"include"}
-        ).then(async response => {
-            if (response.status==200){
-                const json = await response.json()
-                if (json.is_authenticated===true){
-                    console.log(json.customer)
-                    setUser(json.customer)
-                    setAuthenticated(json.is_authenticated)
-                }else{
-                    setUser(null)
-                    setAuthenticated(false)
-                }
-            }
-        }).catch(
-            (err) => {
-                console.log(err)
-                if (!controller.signal.aborted){
-                    console.log("Signal not aborted")
-
-                }
-            }
-        )
-        return () => {controller.abort()}
-    },[])
-
-
-  
+    
     // call this function when you want to authenticate the user
     const login = (data) => {
         setUser(data)
@@ -53,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   
     // call this function to sign out logged in user
     const logout = () => {
-        fetch("http://localhost:8000/customers/logout/",
+        fetch(url+"/customers/logout/",
             {
                 method:"POST",
                 credentials:"include",
@@ -85,7 +50,7 @@ export const AuthProvider = ({ children }) => {
       [user]
     )
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return <AuthContext.Provider value={value}>{props.children}</AuthContext.Provider>;
   };
 
 export function useAuth(){
@@ -120,5 +85,6 @@ export function NotAuthenticated(props){
             <ErrorView message= "Only unauthenticated users can access this page"/>
         )
     }
+    console.log(isAuthenticated,user)
     return (<></>)
 }

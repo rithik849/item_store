@@ -1,6 +1,7 @@
 import {Cookies, useCookies} from "react-cookie"
 import { useEffect, useState } from "react"
 import { useAuth, Authenticated } from "../components/is_authenticated_component"
+import {url} from "../constants"
 
 export function ChangePasswordView(){
 
@@ -16,7 +17,7 @@ export function ChangePasswordView(){
 
     async function handleSubmit(event){
         event.preventDefault();
-        fetch("http://localhost:8000/customers/change-password/",
+        fetch(url+"/customers/change-password/",
             {
                 method : "PATCH",
                 mode : 'cors',

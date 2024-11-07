@@ -1,6 +1,7 @@
 import {Cookies, useCookies} from "react-cookie"
 import { useEffect, useState } from "react"
 import { useAuth, Authenticated } from "../components/is_authenticated_component"
+import {url} from "../constants"
 
 export function ChangeDetailsView(){
 
@@ -24,7 +25,7 @@ export function ChangeDetailsView(){
 
     async function handleSubmit(event){
         event.preventDefault();
-        fetch("http://localhost:8000/customers/change-details/",
+        fetch(url+"/customers/change-details/",
             {
                 method : "POST",
                 mode : 'cors',
