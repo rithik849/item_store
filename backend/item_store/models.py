@@ -60,8 +60,12 @@ class Basket(models.Model):
         return f"{self.customer} {self.product} {self.quantity}"
     
     def save(self,**kwargs):
-        self.customer.save()
         super().save(**kwargs)
+        self.customer.save()
+
+    def delete(self,**kwargs):
+        super().delete(**kwargs)
+        self.customer.save()
     
 class OrderNumber(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -73,7 +77,7 @@ class OrderNumber(models.Model):
     
     def save(self,**kwargs):
         order_number_id = self.id # type: ignore
-        orders = Order.objects.filter(order_number__id = order_number_id)
+        orders = Order.objects.filter(order_number__id = self.id)
         cost = 0
         for order in orders:
             cost += order.product.price * order.quantity
@@ -90,6 +94,10 @@ class Order(models.Model):
     
     def __str__(self):
         return f"{self.order_number} {self.product} {self.quantity}"
+    
+    def save(self,**kwargs):
+        super().save(**kwargs)
+        self.order_number.save()
     
 
     

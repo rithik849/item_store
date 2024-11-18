@@ -124,7 +124,7 @@ class BasketViewSet(
             serializer.save()
             return Response({"success" : True,"detail" : "Product "+str(entry_for_product[0].product)+" added to basket"},status=status.HTTP_200_OK)
         else:
-            serializer = ChangeBasketQuantitySerializer(instance = entry_for_product[0], data = {'quantity' : request.data['quantity']}, partial = True)
+            serializer = serializer_class(instance = entry_for_product[0], data = {'quantity' : request.data['quantity']}, partial = True)
             serializer.is_valid(raise_exception = True)
             serializer.save()
             return Response({"success" : True,"detail" : "Product "+str(entry_for_product[0].product)+" added to basket"},status=status.HTTP_200_OK)
@@ -132,7 +132,9 @@ class BasketViewSet(
     def delete(self, request, id=None):
         if id==None:
             items = self.get_queryset()
-            items.delete()
+            # Ensure delete method is called
+            for item in items:
+                item.delete()
             return Response({"success":True, "detail": "All items removed from basket"}, status=status.HTTP_200_OK)
         user : Customer = request.user
         item : Basket = self.get_object()

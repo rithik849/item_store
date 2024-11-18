@@ -31,7 +31,6 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') #'django-insecure-jhv_de1+eh)*uhdvl2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.getenv('DJANGO_DEBUG'))
 
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -76,7 +75,7 @@ SESSION_COOKIE_SAMESITE='Strict'
 SESSION_COOKIE_HTTPONLY = False
 CORS_ALLOW_CREDENTIALS = True
 
-ALLOWED_HOSTS = ['localhost','testserver']
+ALLOWED_HOSTS = ['localhost','testserver','127.0.0.1']
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
