@@ -113,7 +113,6 @@ class ReviewTestCase(APITestCase):
         
         # Create review for product that does not exist
         response = self.client.post("/reviews/",data={"customer":self.user.id, "product" : 10, "rating" : 3, "comment" : "Test review"}) # type: ignore
-        print(response.status_code)
         assert(response.status_code==400)
     
     def test_destroy_review(self):
@@ -169,6 +168,9 @@ class BasketTestCase(APITestCase):
             product = response.json()
             assert(product['id'] == items[i].product.id) # type: ignore
     
+    def test_basket_total_cost(self):
+        assert(self.user.total_basket_cost == (5.5+3)*5)
+    
     def test_get_basket_item(self):
         product_id = 3
         response = self.client.get(f"/baskets/{product_id}/")
@@ -186,6 +188,8 @@ class BasketTestCase(APITestCase):
         }
         response = self.client.post(f"/baskets/", data = request_json)
         assert(response.status_code==500)
+        self.user = Customer.objects.get(username='test')
+        assert(self.user.total_basket_cost == (5.5+3)*5)
         
     def test_add_new_item_to_basket(self):
         request_json = {
@@ -198,6 +202,9 @@ class BasketTestCase(APITestCase):
         assert(json['success']==True)
         item : Basket = Basket.objects.get(customer=self.user , product__id=request_json['product'])
         assert(item.quantity == request_json['quantity'])
+        product_price = Product.objects.get(id=request_json['product']).price
+        self.user = Customer.objects.get(username='test')
+        assert(self.user.total_basket_cost == (5.5+3)*5 + (product_price*request_json['quantity']))
         
     def test_add_current_item_to_basket(self):
         request_json = {
@@ -208,6 +215,8 @@ class BasketTestCase(APITestCase):
         assert(response.status_code==200)
         json = response.json()
         assert(json['success']==True)
+        self.user = Customer.objects.get(username='test')
+        assert(self.user.total_basket_cost == ((5.5*5) + (3 * 4)))
         
     def test_add_current_item_to_basket_above_stock(self):
         request_json = {
@@ -220,6 +229,8 @@ class BasketTestCase(APITestCase):
         json = response.json()
         assert(json['non_field_errors'][0]=="Not enough of product Book in stock")
         assert(product.stock == 460)
+        self.user = Customer.objects.get(username='test')
+        assert(self.user.total_basket_cost == (5.5+3)*5 )
         
     def test_delete_item_from_basket(self):
         product_id = 1
@@ -229,6 +240,8 @@ class BasketTestCase(APITestCase):
         assert(json['success'] == True)
         assert(json['detail'] == "Item removed from basket")
         assert(Basket.objects.filter(product__id = 1).exists()==False)
+        self.user = Customer.objects.get(username='test')
+        assert(self.user.total_basket_cost==(3*5))
         
     def test_delete_non_existent_item_from_basket(self):
         product_id = 2
@@ -322,6 +335,13 @@ class OrderTestCase(APITestCase):
         user.set_password('testpassword123')
         # Remember to save the model to the database
         user.save()
+
+        # Update models loaded from fixture with save. 
+        querysets = [Customer.objects.all(), OrderNumber.objects.all(), Order.objects.all()] 
+
+        for queryset in querysets:
+            for instance in queryset:
+                instance.save()
         
         cls.user = user
         cls.client = APIClient()
@@ -341,6 +361,16 @@ class OrderTestCase(APITestCase):
         for i in range(len(json)):
             assert(json[i]['date'] == str(orders[i].date))
             assert(json[i]['customer']['username']==orders[i].customer.username) # type: ignore
+
+    def test_order_price(self):
+        orders = list(OrderNumber.objects.filter(customer=self.user))
+        for order in orders:
+            total = 0
+            order_items = Order.objects.filter(order_number_id=order.id)
+            for order_item in order_items:
+                product_price = Product.objects.get(id=order_item.product.id).price
+                total += (product_price*(order_item.quantity))
+            assert(total == order.total_cost)
     
     def test_view_order(self):
         date = "2024-06-21"
