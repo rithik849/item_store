@@ -187,6 +187,15 @@ class OrderNumberSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderNumber
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        remove_fields = kwargs.pop('remove_fields', None)
+        super(OrderNumberSerializer, self).__init__(*args, **kwargs)
+
+        if remove_fields:
+            # for multiple fields in a list
+            for field_name in remove_fields:
+                self.fields.pop(field_name)
         
     def get_items(self,obj):
         orders = Order.objects.filter(order_number = obj.id)
