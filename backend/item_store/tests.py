@@ -167,6 +167,7 @@ class BasketTestCase(APITestCase):
             response = self.client.get(url)
             product = response.json()
             assert(product['id'] == items[i].product.id) # type: ignore
+        assert(body['total'] == self.user.total_basket_cost)
     
     def test_basket_total_cost(self):
         assert(self.user.total_basket_cost == (5.5+3)*5)
@@ -363,14 +364,15 @@ class OrderTestCase(APITestCase):
             assert(json[i]['customer']['username']==orders[i].customer.username) # type: ignore
 
     def test_order_price(self):
-        orders = list(OrderNumber.objects.filter(customer=self.user))
-        for order in orders:
+        response = self.client.get("/orders/")
+        json = response.json()['results']
+        for order in json:
             total = 0
-            order_items = Order.objects.filter(order_number_id=order.id)
+            order_items = Order.objects.filter(order_number_id=order['id'])
             for order_item in order_items:
                 product_price = Product.objects.get(id=order_item.product.id).price
                 total += (product_price*(order_item.quantity))
-            assert(total == order.total_cost)
+            assert(total == float(order['total_cost']))
     
     def test_view_order(self):
         date = "2024-06-21"
