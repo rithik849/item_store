@@ -107,8 +107,9 @@ class BasketViewSet(
         customer = self.request.user
         items = self.get_queryset()# Basket.objects.filter(customer = customer.id) # type: ignore
         serializer = BasketListViewSerializer(items,many=True,context = {"request":request})
-        
-        return paginate(request,serializer.data,self.paginator)
+        response = paginate(request,serializer.data,self.paginator)
+        data = {'total' : customer.total_basket_cost} | response.data
+        return Response(data,status=status.HTTP_200_OK)
     
     def create(self, request, *args,**kwargs):
         serializer_class = ChangeBasketQuantitySerializer
@@ -188,7 +189,7 @@ class OrderViewSet(
         customer: Customer = self.request.user # type: ignore
         orders : BaseManager[OrderNumber] = OrderNumber.objects.filter(customer=customer).order_by("-date") # type:ignore
         serializer = self.get_serializer_class()
-        serializer = serializer(orders, many=True, context = {'request' : request})
+        serializer = serializer(orders, many=True, context = {'request' : request},remove_fields= ['items'])
         
         return paginate(request,serializer.data,self.paginator)
     
@@ -199,6 +200,10 @@ class OrderViewSet(
         # items : BaseManager[Order] = Order.objects.filter(order_number=order_number.id) # type: ignore
         serializer = self.get_serializer_class()
         serializer = serializer(order_number,context = {'request' : request})
+
+        response = paginate(request,serializer.data['items'],self.paginator)
+        data = {'total' : order_number.total_cost} | response.data
+        return Response(data,status=status.HTTP_200_OK)
         
         return paginate(request,serializer.data['items'],self.paginator)
     
