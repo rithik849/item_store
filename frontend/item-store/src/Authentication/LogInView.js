@@ -39,6 +39,8 @@ export function LogInView(){
                     console.log(json.customer)
                     login(json.customer)
                     // alert("CSRF: " + cookies.get("csrftoken")+", SESSION: " + cookies.get("sessionid"))
+                }else if (response.status==401){
+                    alert('Username or password not found!')
                 }else{
                     alert("Something went wrong")
                 }
