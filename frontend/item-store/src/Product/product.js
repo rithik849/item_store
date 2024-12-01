@@ -6,10 +6,21 @@ import { useCookies } from "react-cookie"
 import { ReviewForm, Reviews } from "../Review/review_components"
 import { useParams , useLocation } from "react-router-dom"
 import PaginatedView from "../components/paginated_component";
+import { useNavigate } from "react-router-dom"
 
 
 export function Products(){
-    return <PaginatedView endpoint={url+"/products/?page=1"} item={(key,values)=> <Product key={key} values={values}/>} />
+    const nav = useNavigate()
+    
+    function generateClickHandler(values){
+        const handleClick = (event) => {
+            event.preventDefault()
+            nav("/product/"+values.id, {state : values})
+
+        }
+        return handleClick
+    }
+    return <PaginatedView endpoint={url+"/products/?page=1"} item={(key,values)=> <div key={key} onClick={generateClickHandler(values)}> <Product key={key} values={values} /> </div> } />
 }
 
 
@@ -118,13 +129,7 @@ export function ProductDetailView(){
     return (
         data!==null && 
         <>
-            <div>
-                <h2>{params.id}</h2>
-                <h2>{data.name} </h2>
-                <h2>{data.price}</h2>
-                <h3>{data.stock}</h3>
-                <h3>{data.type}</h3>
-            </div>
+            <Product key={1} values={data} />
             {isAuthenticated && <AddProductToBasketForm id={params.id} />}
             {isAuthenticated && <ReviewForm product={params.id} />}
             <Reviews product={params.id}/>
