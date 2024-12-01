@@ -1,4 +1,4 @@
-import {useState, useEffect } from "react"
+import {useState } from "react"
 import { useCookies } from "react-cookie"
 import { useAuth } from "../components/is_authenticated_component"
 import {url} from "../constants"
@@ -37,7 +37,7 @@ export function ReviewForm(props){
             }
         ).then(
             async (response) => {
-                if (response.status==200){
+                if (response.status===200){
                     alert("Review submitted")
                 }else{
                     const json = await response.json()
@@ -69,7 +69,7 @@ export function ReviewForm(props){
             <input type="number" name="rating" min="1" max="5" onChange={handleChange}></input>
             <label>Review</label>
             <input type="text" name="comment" onChange={handleChange}></input>
-            <button type="submit" >Create</button>
+            <button type="submit" >Create Review</button>
         </form>
         {
             message.map(
@@ -85,8 +85,7 @@ function ReviewCard(props){
     console.log(props)
     return (
         <div>
-            <h2>{props.values['customer']['username']} </h2>
-            <h3>{props.values['rating']}</h3>
+            <h2>{props.values['customer']['username']}, {'★'.repeat(parseInt(props.values['rating']))}</h2>
             <h3>{props.values['comment']}</h3>
         </div>
         )
