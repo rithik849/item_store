@@ -1,10 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import { url } from "../constants"
 import { useState } from "react"
-
-export const formatter = new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'GBP',})
+import { formatter } from "../utils"
 
 function Product({key,values}){
     console.log(values)

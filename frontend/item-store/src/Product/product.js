@@ -20,7 +20,7 @@ export function Products(){
         }
         return handleClick
     }
-    return <PaginatedView endpoint={url+"/products/?page=1"} item={(key,values)=> <div key={key} onClick={generateClickHandler(values)}> <Product key={key} values={values} /> </div> } />
+    return <PaginatedView endpoint={url+"/products/?page=1"} msg={""} item={(key,values)=> <div key={key} onClick={generateClickHandler(values)}> <Product key={key} values={values} /> </div> } />
 }
 
 
@@ -31,7 +31,7 @@ export function AddProductToBasketForm(props){
 
     const [cookies,setCookies] = useCookies()
 
-    // Check if product is in the basket, if it is display its quantity instead of 02.
+    // Check if product is in the basket, if it is display its quantity instead of 0.
     useEffect(() => {
         fetch(url+"/baskets/"+props.id,
             {
