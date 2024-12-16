@@ -121,7 +121,6 @@ class BasketHyperLinkedIdentityField(serializers.HyperlinkedIdentityField):
 class BasketListViewSerializer(serializers.ModelSerializer):
     url = BasketHyperLinkedIdentityField(view_name = 'basket-detail', read_only=True)
     customer = serializers.PrimaryKeyRelatedField(queryset = Customer.objects.all())
-    product = serializers.HyperlinkedRelatedField(view_name = 'product-detail', lookup_field='id', read_only=True)
     
     class Meta:
         model = Basket
