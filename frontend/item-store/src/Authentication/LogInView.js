@@ -32,14 +32,14 @@ export function LogInView(){
                 })
             }
         ).then(async (response) => {
-                if (response.status==200){
+                if (response.status===200){
                     const json = await response.json()
                     const obj = new Cookies()
                     console.log(JSON.stringify(obj.getAll()))
                     console.log(json.customer)
                     login(json.customer)
                     // alert("CSRF: " + cookies.get("csrftoken")+", SESSION: " + cookies.get("sessionid"))
-                }else if (response.status==401){
+                }else if (response.status===401){
                     alert('Username or password not found!')
                 }else{
                     alert("Something went wrong")

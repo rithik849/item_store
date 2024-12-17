@@ -42,9 +42,9 @@ export function ChangeDetailsView(){
             }
         ).then(async (response) => {
             const json = await response.json()
-                if (response.status==200){
+                if (response.status===200){
                     setMessage([json.detail])
-                }else if (response.status==400){
+                }else if (response.status===400){
                     let errors = ""
                     for (let key in json.detail){
                         errors += json.detail[key]
@@ -56,10 +56,10 @@ export function ChangeDetailsView(){
         )
     }
         
-        const handleChange = (event) => {
-            event.preventDefault()
-            setFormData(values => ({...formData,[event.target.name] : event.target.value}))
-        }
+    const handleChange = (event) => {
+        event.preventDefault()
+        setFormData(values => ({...formData,[event.target.name] : event.target.value}))
+    }
 
     return (
         <Authenticated>

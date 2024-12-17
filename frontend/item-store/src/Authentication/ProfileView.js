@@ -6,10 +6,6 @@ export function ProfileView(){
 
     const {user, isAuthenticated, login, logout} = useAuth()
 
-    const [formData, setFormData] = useState({
-        '' : "",
-        '' : ""
-    })
     const [message, setMessage] = useState([])
 
     return ( 
