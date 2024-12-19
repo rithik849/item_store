@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom"
 import { url } from "../constants"
 import PaginatedView from "../components/paginated_component";
@@ -5,6 +6,7 @@ import { formatter } from "../utils";
 import { createContext, useContext } from "react";
 import { useCookies } from "react-cookie";
 import { useState, useEffect } from "react";
+import { Authenticated } from "../components/is_authenticated_component";
 // Components to view basket products and change their amounts
 
 const BasketContext = createContext()
@@ -39,10 +41,13 @@ export function Baskets(){
             alert('Something went wrong!')
         })
     }
-    return <BasketContext.Provider value={[msg,setMsg]}>
-    <button onClick={handleDel}>Empty Basket</button>
-    <PaginatedView endpoint={url+"/baskets/?page=1"} msg={msg} item={(key,values)=> <div key={key}> <Basket key={key} values={values} /> </div> } />
-    </BasketContext.Provider>
+
+    return <Authenticated>
+        <BasketContext.Provider value={[msg,setMsg]}>
+            <button onClick={handleDel}>Empty Basket</button>
+            <PaginatedView endpoint={url+"/baskets/?page=1"} msg={msg} item={(key,values)=> <div key={key}> <Basket key={key} values={values} /> </div> } />
+        </BasketContext.Provider>
+    </Authenticated>
 }
 
 function Basket({key,values}){

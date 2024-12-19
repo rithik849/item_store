@@ -7,7 +7,7 @@ import { ReviewForm, Reviews } from "../Review/review_components"
 import { useParams , useLocation } from "react-router-dom"
 import PaginatedView from "../components/paginated_component";
 import { useNavigate } from "react-router-dom"
-
+import { ErrorView } from "../components/errorView"
 
 export function Products(){
     const nav = useNavigate()
@@ -109,22 +109,24 @@ export function ProductDetailView(){
     const params = useParams()
     const location = useLocation()
     const [data, setData] = useState(null)
+    const [error,setError] = useState(null)
     const {isAuthenticated, user, login, logout} = useAuth()
 
     useEffect(() => {
-        fetch(url + "/products/"+params.id).then(
-            async (response) => {
-                const json = await response.json()
-                console.log(response)
-                if (response.status==200){
-                    setData(json)
-                }
-                else{
-                    console.log(json)
-                }
+        fetch(url + "/products/"+params.id).then(async response =>{
+            const json = await response.json()
+            if (response.status===200){
+                setData(json)
             }
-        )
+            else{
+                setError(json)
+            }
+        })
     },[])
+
+    if (error!==null){
+        return <ErrorView message = {error['detail']} />
+    }
 
     return (
         data!==null && 

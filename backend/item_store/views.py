@@ -1,20 +1,15 @@
-from django.shortcuts import get_object_or_404
 from django.db.models.manager import BaseManager
-from django.db.models import Q
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, NotFound
 from rest_framework.mixins import DestroyModelMixin, RetrieveModelMixin, ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import csrf_exempt
-from rest_framework.decorators import action
-from e_store.permissions import IsCustomerPermission, IsOwnerPermission, ReviewPermission
+from e_store.permissions import IsOwnerPermission, ReviewPermission
 from products.models import Product
 from products.serializers import UpdateProductSerializer
 from item_store.models import Order, OrderNumber, Review, Basket, Customer
-from item_store.serializers import BasketListViewSerializer, CreateOrderSerializer, CustomerSerializer, OrderBasketSerializer, OrderNumberSerializer, OrderSerializer, CreateReviewSerializer,ReviewSerializer, BasketSerializer, ChangeBasketQuantitySerializer
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, requires_csrf_token
+from item_store.serializers import BasketListViewSerializer, CreateOrderSerializer, OrderNumberSerializer, CreateReviewSerializer,ReviewSerializer, BasketSerializer, ChangeBasketQuantitySerializer
 from django.utils.decorators import method_decorator
 
 def paginate(request,data,paginator):
@@ -55,10 +50,14 @@ class ReviewViewSet(
         for field in self.lookup_fields:
             filter[field] = self.kwargs[field]
             
-        user = Customer.objects.get(username=filter['customer_username'])
-        del filter['customer_username']
-        filter['customer'] = user
-        obj = get_object_or_404(queryset, **filter)
+        try:
+            user = Customer.objects.get(username=filter['customer_username'])
+            del filter['customer_username']
+            filter['customer'] = user
+            obj = queryset.get(**filter)
+        except Exception as e:
+            raise NotFound("Review not found.")
+        
         self.check_object_permissions(self.request, obj)
         return obj
         
@@ -94,7 +93,10 @@ class BasketViewSet(
         queryset = self.filter_queryset(queryset)
         filter = {}
         filter["product__id"] = self.kwargs[self.lookup_field]
-        obj = get_object_or_404(queryset,**filter)
+        try:
+            obj = queryset.get(**filter)
+        except Exception as e:
+            raise NotFound("Basket item not found.")
         self.check_object_permissions(self.request, obj)
         return obj
     
@@ -108,7 +110,7 @@ class BasketViewSet(
         items = self.get_queryset()# Basket.objects.filter(customer = customer.id) # type: ignore
         serializer = BasketListViewSerializer(items,many=True,context = {"request":request})
         response = paginate(request,serializer.data,self.paginator)
-        data = {'total' : customer.total_basket_cost} | response.data
+        data = {'total' : customer.total_basket_cost} | response.data # type: ignore
         return Response(data,status=status.HTTP_200_OK)
     
     def create(self, request, *args,**kwargs):
@@ -187,7 +189,9 @@ class OrderViewSet(
     # List orders made by a customer
     def list(self, request):
         customer: Customer = self.request.user # type: ignore
-        orders : BaseManager[OrderNumber] = OrderNumber.objects.filter(customer=customer).order_by("-date") # type:ignore
+        orders : BaseManager[OrderNumber] = self.get_queryset().order_by("-date") # type:ignore
+        if len(orders) == 0:
+            raise NotFound("You do not have any orders.")
         serializer = self.get_serializer_class()
         serializer = serializer(orders, many=True, context = {'request' : request},remove_fields= ['items'])
         
@@ -196,16 +200,18 @@ class OrderViewSet(
     # Retrieve the products part of the order
     def retrieve(self,request, date=None, id=None):
         customer: Customer = self.request.user # type: ignore
-        order_number : OrderNumber = OrderNumber.objects.get(customer=customer.id,date=date, id=id) # type:ignore
+        try:
+            order_number : OrderNumber = OrderNumber.objects.get(customer=customer,date=date, id=id) # type:ignore
+        except Exception as e:
+            raise NotFound("This order does not exist.")
+            
         # items : BaseManager[Order] = Order.objects.filter(order_number=order_number.id) # type: ignore
         serializer = self.get_serializer_class()
         serializer = serializer(order_number,context = {'request' : request})
 
         response = paginate(request,serializer.data['items'],self.paginator)
-        data = {'total' : order_number.total_cost} | response.data
+        data = {'total' : order_number.total_cost} | response.data # type: ignore
         return Response(data,status=status.HTTP_200_OK)
-        
-        return paginate(request,serializer.data['items'],self.paginator)
     
     def create(self, request):
         """
@@ -227,8 +233,6 @@ class OrderViewSet(
                 under_stock_response.append("Not enough of "+str(item.product)+" in stock")
         if len(under_stock_response)>0:
             raise APIException(under_stock_response)
-            
-        
         
         
         # Reduce the stock of each product

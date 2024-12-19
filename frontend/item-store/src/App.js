@@ -1,7 +1,5 @@
 import {useState, useEffect} from "react"
 import React from "react";
-import PaginatedView from "./components/paginated_component";
-import Product from "./Product/product_card";
 import {LogInView} from "./Authentication/LogInView"
 import {LogOutView} from "./Authentication/LogOutView";
 import { ChangeDetailsView } from "./Authentication/ChangeDetailsView";
@@ -14,6 +12,7 @@ import { ProductDetailView, Products } from "./Product/product";
 import { Baskets } from "./Basket/basket";
 import { useAuth } from "./components/is_authenticated_component";
 import {url} from "./constants"
+import { Orders, OrderDetails } from "./Order/order";
 
 
 function CreateRoutes(){
@@ -31,6 +30,8 @@ function CreateRoutes(){
             <Route path = "" element = {<Products/>}/>
             <Route path = "/product/:id" element = {<ProductDetailView/>} />
             <Route path = "/baskets" element = {<Baskets/>}/>
+            <Route path = "/orders" element = {<Orders/>} />
+            <Route path = "/orders/:date/:id" element = {<OrderDetails/>} />
         </Route>
     )
   )

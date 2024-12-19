@@ -77,7 +77,7 @@ class OrderNumber(models.Model):
     
     def save(self,**kwargs):
         order_number_id = self.id # type: ignore
-        orders = Order.objects.filter(order_number__id = self.id)
+        orders = Order.objects.filter(order_number__id = self.id) # type: ignore
         cost = 0
         for order in orders:
             cost += order.product.price * order.quantity
@@ -97,7 +97,7 @@ class Order(models.Model):
     
     def save(self,**kwargs):
         super().save(**kwargs)
-        self.order_number.save()
+        self.order_number.save() # type: ignore
     
 
     

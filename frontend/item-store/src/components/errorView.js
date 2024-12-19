@@ -1,11 +1,11 @@
 
 
 
-export function ErrorView(props){
+export function ErrorView({message}){
     return (
         <div>
             <h1>
-                {props.message}
+                {message}
             </h1>
         </div>
     )

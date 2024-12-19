@@ -31,7 +31,7 @@
     },
     {
         "model": "item_store.review",
-        "pk": 6,
+        "pk": 7,
         "fields": {
             "customer": 6,
             "product": 2,

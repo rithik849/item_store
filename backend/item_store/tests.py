@@ -46,6 +46,8 @@ class ReviewTestCase(APITestCase):
         review_count = Review.objects.all().count()
         page_count = math.ceil(review_count/PAGE_SIZE)
         last_page_review_count = review_count%PAGE_SIZE
+        if last_page_review_count==0:
+            last_page_review_count = PAGE_SIZE
         
         for i in range(1,page_count):
             response = self.client.get("/reviews/?page="+str(i))
@@ -66,16 +68,30 @@ class ReviewTestCase(APITestCase):
         assert(body['customer']['username'] == 'test')
         assert(body['product']['id'] == product.id) # type: ignore
         
+    def test_get_other_users_review(self):
+        response = self.client.get("/reviews/A/1/")
+        body = response.json()
+        assert(response.status_code==404)
+        assert(body['detail'] == 'Review not found.')
+    
+    def test_get_review_that_does_not_exist(self):
+        response = self.client.get("/reviews/unknownuser/5/")
+        body = response.json()
+        assert(response.status_code==404)
+        assert(body['detail'] == 'Review not found.')
+        
     def test_get_reviews_by_product(self):
         product : Product = Product.objects.get(name="Pen")
         response = self.client.get("/reviews/"+str(product.id)+"/") #type: ignore
         body = response.json()
         assert(response.status_code==200)
-        assert(body['count']==3)
+        assert(body['count']==4)
         
         PAGE_SIZE : int = api_settings.PAGE_SIZE # type: ignore
         page_count = math.ceil(body['count']/PAGE_SIZE)
         last_page_review_count = body['count']%PAGE_SIZE
+        if last_page_review_count==0:
+            last_page_review_count = PAGE_SIZE
         
         for i in range(1,page_count):
             response = self.client.get("/reviews/"+str(product.id)+"/?page="+str(i)) #type: ignore
@@ -124,6 +140,9 @@ class ReviewTestCase(APITestCase):
         self.client.login(username='test',password='testpassword123')
         response = self.client.delete(f"/reviews/{self.user.username}/{pen.id}/") # type: ignore
         assert(response.status_code==200)
+        # Test we get an error message for a review that does not exist
+        response = self.client.delete(f"/reviews/unknownuser/42/") # type: ignore
+        assert(response.status_code==404)
         # Test we can only delete our own review
         response = self.client.delete(f"/reviews/rithik/2/") # type: ignore
         body = response.json()
@@ -163,9 +182,7 @@ class BasketTestCase(APITestCase):
         items = list(Basket.objects.filter(customer__username='test'))
         for i,basket_item in enumerate(body['results']):
             assert(basket_item['customer']==self.customer_id)
-            url = basket_item['product']
-            response = self.client.get(url)
-            product = response.json()
+            product = basket_item['product']
             assert(product['id'] == items[i].product.id) # type: ignore
         assert(body['total'] == self.user.total_basket_cost)
     
@@ -181,6 +198,11 @@ class BasketTestCase(APITestCase):
         assert(json['customer']['username']==item.customer.username)
         assert(json['quantity']==item.quantity)
         assert(json['product']['id']==item.product.id) # type: ignore
+        
+    def test_get_basket_item_that_does_not_exist(self):
+        response = self.client.get(f"/baskets/42/")
+        body = response.json()
+        assert(body['detail'] == 'Basket item not found.')
         
     def test_add_item_to_basket_with_invalid_quantity(self):
         request_json = {
@@ -249,7 +271,7 @@ class BasketTestCase(APITestCase):
         response = self.client.delete(f"/baskets/{product_id}/")
         assert(response.status_code==404)
         json = response.json()
-        assert(json['detail'] == "No Basket matches the given query.")
+        assert(json['detail'] == "Basket item not found.")
         
     def test_empty_basket(self):
         response = self.client.delete(f"/baskets/")
@@ -348,6 +370,9 @@ class OrderTestCase(APITestCase):
         cls.client = APIClient()
         cls.customer_id = user.id # type: ignore
         
+        for order in OrderNumber.objects.all():
+            order.save()
+        
     def setUp(self):
         self.client.login(username='test',password='testpassword123')
         
@@ -362,6 +387,12 @@ class OrderTestCase(APITestCase):
         for i in range(len(json)):
             assert(json[i]['date'] == str(orders[i].date))
             assert(json[i]['customer']['username']==orders[i].customer.username) # type: ignore
+            
+    def test_view_empty_orders(self):
+        OrderNumber.objects.all().delete()
+        response = self.client.get("/orders/")
+        body = response.json()
+        assert(body['detail'] == 'You do not have any orders.')
 
     def test_order_price(self):
         response = self.client.get("/orders/")
@@ -370,7 +401,7 @@ class OrderTestCase(APITestCase):
             total = 0
             order_items = Order.objects.filter(order_number_id=order['id'])
             for order_item in order_items:
-                product_price = Product.objects.get(id=order_item.product.id).price
+                product_price = Product.objects.get(id=order_item.product.id).price # type: ignore
                 total += (product_price*(order_item.quantity))
             assert(total == float(order['total_cost']))
     
@@ -386,6 +417,11 @@ class OrderTestCase(APITestCase):
             assert(item['order_number'] == order_number)
             assert(item['product']['id'] == items[i].product.id) # type: ignore
             assert(item['quantity'] == items[i].quantity)
+            
+    def test_view_order_that_does_not_exist(self):
+        response = self.client.get("/orders/2024-07-04/2/")
+        body = response.json()
+        assert(body['detail'] == 'This order does not exist.')
             
     
     def test_make_order(self):
