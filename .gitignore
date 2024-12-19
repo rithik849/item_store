@@ -4,3 +4,6 @@ __pycache__
 TODO.txt
 env
 .vscode
+requirements.txt
+.dockerignore
+Dockerfile
