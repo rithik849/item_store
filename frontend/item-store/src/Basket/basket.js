@@ -16,8 +16,28 @@ export function Baskets(){
     const [cookies,setCookies] = useCookies()
     const [msg,setMsg] = useState("")
 
-    
+    async function placeOrder(){
+        const response = fetch(url+"/orders/",{
+            method : "POST",
+            mode : "cors",
+            headers : {
+                "Content-Type" : 'application/json; charset=UTF-8',
+                "Access-Control-Allow-Credentials" : true,
+                "X-CSRFToken" : cookies.csrftoken
+            },
+            credentials : "include"
+        })
+        .then(async res => {
+            const json = await res.json()
+            setMsg(json)
+            alert(json.detail)
 
+        })
+        .catch((err) => {
+            console.log(err)
+            alert(err['detail'])
+        })
+    }
 
     async function handleDel(){
         const response = fetch(url+"/baskets/",{
@@ -45,6 +65,7 @@ export function Baskets(){
     return <Authenticated>
         <BasketContext.Provider value={[msg,setMsg]}>
             <button onClick={handleDel}>Empty Basket</button>
+            <button onClick={placeOrder}>Order</button>
             <PaginatedView endpoint={url+"/baskets/?page=1"} msg={msg} item={(key,values)=> <div key={key}> <Basket key={key} values={values} /> </div> } />
         </BasketContext.Provider>
     </Authenticated>
