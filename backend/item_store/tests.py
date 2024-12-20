@@ -440,7 +440,10 @@ class OrderTestCase(APITestCase):
             assert(basket_items[i].product.id == orders[i].product.id) # type: ignore
             assert(orders[i].product.stock == (prev_stock[i] - orders[i].quantity))
             
-        assert(Basket.objects.filter(customer__username='test').count()==0)
+        assert(Basket.objects.filter(customer=self.user).count()==0)
+        # Deleting field makes the model reload the data from the database when accessed after.
+        del self.user.total_basket_cost
+        assert(self.user.total_basket_cost==0)
         
     def test_make_invalid_order(self):
         basket_before = Basket.objects.filter(customer__username='test').order_by("product__id")

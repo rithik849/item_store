@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db.models.manager import BaseManager
 from rest_framework import status
 from rest_framework import viewsets
@@ -254,5 +255,6 @@ class OrderViewSet(
         
         # Remove items from the basket
         items.delete()
+        user.save()
         
         return Response({"success" : True, "detail" : "Order has been made"},status=status.HTTP_200_OK)
