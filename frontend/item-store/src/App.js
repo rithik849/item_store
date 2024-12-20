@@ -22,13 +22,13 @@ function CreateRoutes(){
   const router = createBrowserRouter(
     createRoutesFromElements(
         <Route>
-            <Route index path="/login" element = {<LogInView/>} />
+            <Route index path = "" element = {<Products/>}/>
+            <Route path = "/product/:id" element = {<ProductDetailView/>} />
+            <Route path="/login" element = {<LogInView/>} />
             <Route path = "/logout" element = {<LogOutView/>} />
             <Route path = "/change-details" element = {<ChangeDetailsView/>} />
             <Route path = "/change-password" element = {<ChangePasswordView/>} />
             <Route path = "/profile" element = {<ProfileView/>}/>
-            <Route path = "" element = {<Products/>}/>
-            <Route path = "/product/:id" element = {<ProductDetailView/>} />
             <Route path = "/baskets" element = {<Baskets/>}/>
             <Route path = "/orders" element = {<Orders/>} />
             <Route path = "/orders/:date/:id" element = {<OrderDetails/>} />
@@ -83,18 +83,18 @@ function App() {
       return () => {controller.abort()}
   },[])
 
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-        <Route>
-            <Route index path="/login" element = {<LogInView/>} />
-            <Route path = "/logout" element = {<LogOutView/>} />
-            <Route path = "/change-details" element = {<ChangeDetailsView/>} />
-            <Route path = "/change-password" element = {<ChangePasswordView/>} />
-            <Route path = "/profile" element = {<ProfileView/>}/>
-            <Route path = "/product" element = {<Products/>}/>
-            <Route path = "/product/:id" element = {<ProductDetailView/>} />
-        </Route>
-    ))
+  // const router = createBrowserRouter(
+  //   createRoutesFromElements(
+  //       <Route>
+  //           <Route index path="/login" element = {<LogInView/>} />
+  //           <Route path = "/logout" element = {<LogOutView/>} />
+  //           <Route path = "/change-details" element = {<ChangeDetailsView/>} />
+  //           <Route path = "/change-password" element = {<ChangePasswordView/>} />
+  //           <Route path = "/profile" element = {<ProfileView/>}/>
+  //           <Route path = "/product" element = {<Products/>}/>
+  //           <Route path = "/product/:id" element = {<ProductDetailView/>} />
+  //       </Route>
+  //   ))
 
   return (
     <React.StrictMode>
