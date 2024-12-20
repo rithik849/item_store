@@ -67,7 +67,7 @@ export function Authenticated(props){
     }
     if ((isAuthenticated)===false){
         return (
-            <ErrorView message= "Only authenticated users can access this page"/>
+            <ErrorView message= "You must be logged in to access this page."/>
         )
     }
 
@@ -82,7 +82,7 @@ export function NotAuthenticated(props){
     }
     if(isAuthenticated===true){
         return (
-            <ErrorView message= "Only unauthenticated users can access this page"/>
+            <ErrorView message= "You are already logged in."/>
         )
     }
     console.log(isAuthenticated,user)
