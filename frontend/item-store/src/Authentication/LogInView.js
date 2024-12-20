@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import {Cookies, useCookies} from "react-cookie"
 import {NotAuthenticated, useAuth} from "../components/is_authenticated_component"
 import {url} from "../constants"
+import { useNavigate } from "react-router-dom";
 
 export function LogInView(){
 
     const {user, isAuthenticated, login, logout} = useAuth()
+    const navigate = useNavigate()
 
     const [formData, setFormData] = useState({
         'username' : "",
@@ -32,15 +34,16 @@ export function LogInView(){
                 })
             }
         ).then(async (response) => {
+                const json = await response.json()
                 if (response.status===200){
-                    const json = await response.json()
                     const obj = new Cookies()
                     console.log(JSON.stringify(obj.getAll()))
                     console.log(json.customer)
                     login(json.customer)
+                    navigate("/")
                     // alert("CSRF: " + cookies.get("csrftoken")+", SESSION: " + cookies.get("sessionid"))
                 }else if (response.status===401){
-                    alert('Username or password not found!')
+                    alert(json['detail'])
                 }else{
                     alert("Something went wrong")
                 }
