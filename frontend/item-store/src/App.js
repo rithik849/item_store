@@ -13,6 +13,7 @@ import { Baskets } from "./Basket/basket";
 import { useAuth } from "./components/is_authenticated_component";
 import {url} from "./constants"
 import { Orders, OrderDetails } from "./Order/order";
+import { Navigation } from "./components/navigation";
 
 
 function CreateRoutes(){
@@ -21,7 +22,7 @@ function CreateRoutes(){
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-        <Route>
+        <Route element={<Navigation/>}>
             <Route index path = "" element = {<Products/>}/>
             <Route path = "/product/:id" element = {<ProductDetailView/>} />
             <Route path="/login" element = {<LogInView/>} />
@@ -38,8 +39,9 @@ function CreateRoutes(){
 
   return(
     <>
-      {isAuthenticated && <p>{user.username}</p>}
-      <RouterProvider router={router}/>
+      <RouterProvider router={router}>
+        <Navigation/>
+      </RouterProvider>
     </>
   )
 }
