@@ -9,6 +9,7 @@ from products.serializers import ProductSerializer
 from products.models import Product
 from products.views import ProductViewSet
 from e_store.test_utils import my_reverse
+import math
 
 # Create your tests here.
 
@@ -59,8 +60,8 @@ class ProductTestCase(TransactionTestCase):
         response = list_view(request)
         
         serializer = ProductSerializer(Product.objects.all(),many=True)
-        pages = response.data['count']
-        for i in range(1,pages):
+        pages = math.ceil(response.data['count'] / PAGE_SIZE)
+        for i in range(1,pages+1):
             request = self.factory.get(my_reverse('product-list',query_kwargs={'page':i})) # type: ignore
             response = list_view(request)
             assert(response.data['results']==serializer.data[((i-1)*PAGE_SIZE) : ((i)*PAGE_SIZE)])
