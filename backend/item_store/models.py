@@ -10,8 +10,8 @@ from decimal import Decimal
 
 class Customer(AbstractUser):
 
-    username = models.TextField(max_length=50,unique=True)
-    email = models.EmailField(max_length=100, unique = True)
+    username = models.TextField(max_length=50,unique=True, blank=False)
+    email = models.EmailField(max_length=100, unique = True, blank = False)
     password = models.TextField(max_length=255)
     total_basket_cost = models.DecimalField(default=Decimal(0), max_digits=30,decimal_places=2)
     
