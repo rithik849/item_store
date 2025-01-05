@@ -11,3 +11,17 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.navbar-item.active{
+  color : orange
+}
+
+.navbar-item{
+  border-radius: 0.375rem;
+  background-color: blue;
+  color : black;
+  text-decoration: none;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  padding: 1rem;
+}
