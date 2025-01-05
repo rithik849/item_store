@@ -2,10 +2,11 @@ import {Cookies, useCookies} from "react-cookie"
 import { useEffect, useState } from "react"
 import { useAuth, Authenticated } from "../components/is_authenticated_component"
 import {url} from "../constants"
+import { getHeaders } from "../utils"
 
 export function ChangeDetailsView(){
 
-    const {user, isAuthenticated, login, logout} = useAuth()
+    const {user, isAuthenticated, login, logout, update} = useAuth()
 
     const [message, setMessage] = useState([])
 
@@ -29,11 +30,7 @@ export function ChangeDetailsView(){
             {
                 method : "POST",
                 mode : 'cors',
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
+                headers : getHeaders(),
                 credentials : "include",
                 body : JSON.stringify({
                     "username" : formData.username,

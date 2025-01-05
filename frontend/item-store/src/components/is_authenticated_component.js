@@ -2,6 +2,7 @@ import {useState, useEffect, useLayoutEffect, useRef, useMemo, useContext, creat
 import { ErrorView } from "./errorView"
 import {Cookies, useCookies} from "react-cookie"
 import {url} from "../constants"
+import { getHeaders } from "../utils";
 
 const AuthContext = createContext();
 export const AuthProvider = (props) => {
@@ -25,22 +26,19 @@ export const AuthProvider = (props) => {
         fetch(url+"/customers/logout/",
             {
                 method:"POST",
-                credentials:"include",
                 mode : 'cors',
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
+                headers : getHeaders(),
+                credentials:"include",
             }
         ).then(request =>{
             if (request.status===200){
-                setUser(null)
+                setUser({'username':"",'email':""})
                 setAuthenticated(false)
+                const obj = new Cookies()
+                obj.remove('csrftoken')
             }
         }
         )
-        // user.current = null
         
     }
   
@@ -67,7 +65,7 @@ export function Authenticated(props){
 
     const {user, isAuthenticated, login, logout} = useAuth()
 
-    if ((isAuthenticated===true && user!==null)){
+    if ((isAuthenticated===true && user.username!=="")){
         return (props.children)
     }
     if ((isAuthenticated)===false){
@@ -82,7 +80,7 @@ export function Authenticated(props){
 export function NotAuthenticated(props){
     const {user, isAuthenticated, login, logout} = useAuth()
 
-    if (isAuthenticated===false && user===null){
+    if (isAuthenticated===false && user.username===""){
         return (props.children)
     }
     if(isAuthenticated===true){

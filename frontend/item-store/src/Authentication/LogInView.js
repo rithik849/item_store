@@ -3,6 +3,7 @@ import {Cookies, useCookies} from "react-cookie"
 import {NotAuthenticated, useAuth} from "../components/is_authenticated_component"
 import {url} from "../constants"
 import { useNavigate } from "react-router-dom";
+import { getHeaders } from "../utils";
 
 export function LogInView(){
 
@@ -22,11 +23,7 @@ export function LogInView(){
             {
                 method : "POST",
                 mode : 'cors',
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
+                headers : getHeaders(),
                 credentials : "include",
                 body : JSON.stringify({
                     "username" : formData.username,
@@ -36,11 +33,9 @@ export function LogInView(){
         ).then(async (response) => {
                 const json = await response.json()
                 if (response.status===200){
-                    const obj = new Cookies()
-                    console.log(JSON.stringify(obj.getAll()))
-                    console.log(json.customer)
                     login(json.customer)
                     navigate("/")
+                    
                     // alert("CSRF: " + cookies.get("csrftoken")+", SESSION: " + cookies.get("sessionid"))
                 }else if (response.status===401){
                     alert(json['detail'])

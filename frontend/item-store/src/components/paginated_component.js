@@ -2,6 +2,8 @@ import {useState, useEffect} from "react"
 import { useCookies } from "react-cookie";
 import { formatter } from "../utils";
 import { ErrorView } from "./errorView";
+import Button from 'react-bootstrap/Button'
+import { getHeaders } from "../utils";
 
 function PaginatedView({endpoint,item,msg}){
 
@@ -15,11 +17,7 @@ function PaginatedView({endpoint,item,msg}){
       const response = fetch(url,             {
         "method" : "GET",
         mode : "cors",
-        headers : {
-            "Content-Type" : 'application/json; charset=UTF-8',
-            "Access-Control-Allow-Credentials" : true,
-            "X-CSRFToken" : cookies.csrftoken
-        },
+        headers : getHeaders(),
         credentials : "include"
     }).then(async res => {
         const body = await res.json()
@@ -55,11 +53,11 @@ function PaginatedView({endpoint,item,msg}){
         </div>
         {
           ((state!=null && state['previous']!=null)) && 
-          <button onClick={()=>{setUrl(state['previous'])}}>{"Prev"}</button>
+          <Button className='' onClick={()=>{setUrl(state['previous'])}}>{"Prev"}</Button>
         }
         {
           ((state!=null && state['next']!=null)) && 
-          <button onClick={()=>{setUrl(state['next'])}}>{"Next"}</button>
+          <Button onClick={()=>{setUrl(state['next'])}}>{"Next"}</Button>
         }
         </>
     );

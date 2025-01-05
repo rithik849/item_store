@@ -8,6 +8,7 @@ import { useParams , useLocation } from "react-router-dom"
 import PaginatedView from "../components/paginated_component";
 import { useNavigate } from "react-router-dom"
 import { ErrorView } from "../components/errorView"
+import { getHeaders } from "../utils"
 
 export function Products(){
     const nav = useNavigate()
@@ -37,11 +38,7 @@ export function AddProductToBasketForm(props){
             {
                 "method" : "GET",
                 mode : "cors",
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
+                headers : getHeaders(),
                 credentials : "include"
             }
         ).then(async (response) => {
@@ -59,11 +56,7 @@ export function AddProductToBasketForm(props){
             {
                 method : "POST",
                 mode : 'cors',
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
+                headers : getHeaders(),
                 credentials : "include",
                 body : JSON.stringify({
                     "product" : props.id,
