@@ -15,10 +15,11 @@ import {url} from "./constants"
 import { Orders, OrderDetails } from "./Order/order";
 import { Navigation } from "./components/navigation";
 
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 function CreateRoutes(){
 
-  const {isAuthenticated,user,logout,login} = useAuth()
 
   const router = createBrowserRouter(
     createRoutesFromElements(
@@ -69,7 +70,7 @@ function App() {
                   setUser(json.customer)
                   setAuthenticated(json.is_authenticated)
               }else{
-                  setUser(null)
+                  setUser({'username':"",'email':""})
                   setAuthenticated(false)
               }
           }
@@ -84,19 +85,6 @@ function App() {
       )
       return () => {controller.abort()}
   },[])
-
-  // const router = createBrowserRouter(
-  //   createRoutesFromElements(
-  //       <Route>
-  //           <Route index path="/login" element = {<LogInView/>} />
-  //           <Route path = "/logout" element = {<LogOutView/>} />
-  //           <Route path = "/change-details" element = {<ChangeDetailsView/>} />
-  //           <Route path = "/change-password" element = {<ChangePasswordView/>} />
-  //           <Route path = "/profile" element = {<ProfileView/>}/>
-  //           <Route path = "/product" element = {<Products/>}/>
-  //           <Route path = "/product/:id" element = {<ProductDetailView/>} />
-  //       </Route>
-  //   ))
 
   return (
     <React.StrictMode>
