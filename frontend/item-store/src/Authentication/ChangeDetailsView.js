@@ -44,6 +44,7 @@ export function ChangeDetailsView(){
             const json = await response.json()
                 if (response.status===200){
                     setMessage([json.detail])
+                    update(formData)
                 }else if (response.status===400){
                     let errors = ""
                     for (let key in json.detail){

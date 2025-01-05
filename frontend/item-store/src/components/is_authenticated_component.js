@@ -46,6 +46,7 @@ export const AuthProvider = (props) => {
         isAuthenticated,
         login,
         logout,
+        update
       }),
       [user]
     )
