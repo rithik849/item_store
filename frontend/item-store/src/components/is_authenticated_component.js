@@ -15,6 +15,10 @@ export const AuthProvider = (props) => {
         setAuthenticated(true)
         // setUser(data)
     }
+
+    const update = (data) => {
+        setUser(prev => ({...prev,...data}))
+    }
   
     // call this function to sign out logged in user
     const logout = () => {
