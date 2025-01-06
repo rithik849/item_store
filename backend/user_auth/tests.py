@@ -4,6 +4,7 @@ from django.test import TransactionTestCase, TestCase, Client
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase, api_settings, RequestsClient
 from rest_framework.viewsets import reverse
 from item_store.models import Customer
+from django.contrib.auth import get_user
 # Create your tests here.
 
 class CustomerAuthTestCase(APITestCase):
@@ -93,3 +94,31 @@ class CustomerAuthTestCase(APITestCase):
         self.client.logout()
         val = self.client.login(username='test',password=new_password)
         assert(val==False)
+        
+    def test_signup_view(self):
+        create_user = {
+            'username' : 'newuser',
+            'email' : 'newuser@gmail.com',
+            'password' : 'newpassword123',
+            'password2' : 'newpassword123'
+        }
+        response = self.client.post('/customers/register/', data = create_user )
+        json = response.json()
+        assert(response.status_code==200)
+        assert(Customer.objects.filter(username=create_user['username']).exists() == True)
+        user = get_user(self.client)
+        assert(user.is_authenticated==True)
+        assert(json['user']['username'] == create_user['username'])
+        assert(json['user']['email'] == create_user['email'])
+        self.client.logout()
+        
+        create_user_invalid = {
+            'username' : 'newuser',
+            'email' : 'newuser@gmail.com',
+            'password' : 'newpassword123',
+            'password2' : 'newpassword'
+        }
+        response = self.client.post('/customers/register/', data = create_user_invalid )
+        assert(response.status_code!=200)
+        user = get_user(self.client)
+        assert(user.is_authenticated==False)

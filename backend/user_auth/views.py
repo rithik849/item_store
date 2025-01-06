@@ -21,6 +21,21 @@ class CustomerSignUpView(CreateAPIView):
     permission_classes = (IsNotAuthenticated,)
     serializer_class = SignUpSerializer
     
+    def post(self,request):
+        response = super().post(request)
+        
+        if response.status_code == 201:
+            user : Optional[AbstractBaseUser] = authenticate(username=request.data['username'],password=request.data['password'])
+            user = typing.cast(Customer, user)
+            if user==None:
+                raise Exception
+            login(request, user)
+            json = CustomerSerializer(user)
+            return Response({'success' : True, 'detail':'User created successfully', 'user' : json.data}, status=status.HTTP_200_OK)
+        else:
+            json = response.json()
+            return Response({'success' : True, 'detail':json.data}, status=status.HTTP_403_FORBIDDEN)
+    
 class CustomerChangeDetailsView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UpdateDetailsSerializer
