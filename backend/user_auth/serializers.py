@@ -114,15 +114,17 @@ class LogInSerializer(BaseSerializer):
 class SignUpSerializer(BaseSerializer):
     username = serializers.CharField(
         required=True,
-        validators=[UniqueValidator(queryset=Customer.objects.all(),message='Username already in use. Please choose another username.')]
+        validators=[UniqueValidator(queryset=Customer.objects.all(),message='Username already in use. Please choose another username.')],
+        error_messages = {"blank" : "Username can not be blank."}
     )
     email = serializers.EmailField(
             required=True,
-            validators=[UniqueValidator(queryset=Customer.objects.all(),message='An account with this email already exists. Please choose another email.')]
+            validators=[UniqueValidator(queryset=Customer.objects.all(),message='An account with this email already exists. Please choose another email.')],
+            error_messages = {"blank" : "E-mail can not be blank."}
     )
 
-    password = serializers.CharField(write_only=True, required=True, validators=[default_password_validation])
-    password2 = serializers.CharField(write_only=True, required=True)
+    password = serializers.CharField(write_only=True, required=True, validators=[default_password_validation], error_messages = {"required" : "Password is unspecified", "blank": "Password can not be blank."})
+    password2 = serializers.CharField(write_only=True, required=True, error_messages= {"required" : "Confirm password is unspecified", "blank": "Confirm password can not be blank."})
     
     class Meta:
         model = Customer
