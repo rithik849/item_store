@@ -21,7 +21,7 @@ export function Products(){
         }
         return handleClick
     }
-    return <PaginatedView endpoint={url+"/products/?page=1"} msg={""} item={(key,values)=> <div key={key} onClick={generateClickHandler(values)}> <Product key={key} values={values} /> </div> } />
+    return <PaginatedView endpoint={url+"/products/?page=1"} msg={""} item={(key,values)=> <div key={key} onClick={generateClickHandler(values)}> <Product values={values} /> </div> } />
 }
 
 

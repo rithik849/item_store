@@ -3,12 +3,11 @@ import { url } from "../constants"
 import { useState } from "react"
 import { formatter } from "../utils"
 
-function Product({key,values}){
-    console.log(values)
+function Product({values}){
 
 
     return (
-    <div key={key}>
+    <div>
         <h2>{values.id}</h2>
         <h2>{"Name: "+values.name} </h2>
         <h2>{"Price: "+formatter.format(values.price)}</h2>
