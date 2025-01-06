@@ -3,6 +3,7 @@ import { ErrorView } from "./errorView"
 import {Cookies, useCookies} from "react-cookie"
 import {url} from "../constants"
 import { getHeaders } from "../utils";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 export const AuthProvider = (props) => {
@@ -64,6 +65,17 @@ export function useAuth(){
 export function Authenticated(props){
 
     const {user, isAuthenticated, login, logout} = useAuth()
+
+    const navigate = useNavigate()
+
+    useEffect(
+        () => {
+        if (!isAuthenticated){
+            setTimeout(() => {
+                navigate('/')
+            }, 2000)
+        }
+    },[isAuthenticated])
 
     if ((isAuthenticated===true && user.username!=="")){
         return (props.children)
