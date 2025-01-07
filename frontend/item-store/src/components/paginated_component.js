@@ -21,7 +21,6 @@ function PaginatedView({endpoint,item,msg}){
         credentials : "include"
     }).then(async res => {
         const body = await res.json()
-        console.log(body)
         if (res.status === 200){
           setState(body)
         }else{
@@ -31,10 +30,6 @@ function PaginatedView({endpoint,item,msg}){
   
     },[url,msg])
 
-    // if (state!=null){
-    //     console.log(state['results'])
-
-    // }
 
     if (error !== null){
       return <ErrorView message={error['detail']}/>
