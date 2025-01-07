@@ -32,6 +32,7 @@ export function Navigation(props){
                     {!isAuthenticated &&
                     <>
                     <NavLink className='nav-item navbar-item' to='/login'>Log In</NavLink>
+                    <NavLink className='nav-item navbar-item' to='/signup'>Sign Up</NavLink>
                     </>
                     }
                 </nav>

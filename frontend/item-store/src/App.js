@@ -14,8 +14,8 @@ import { useAuth } from "./components/is_authenticated_component";
 import {url} from "./constants"
 import { Orders, OrderDetails } from "./Order/order";
 import { Navigation } from "./components/navigation";
-
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { SignUpView } from "./Authentication/SignUpView";
 
 
 function CreateRoutes(){
@@ -28,6 +28,7 @@ function CreateRoutes(){
             <Route path = "/product/:id" element = {<ProductDetailView/>} />
             <Route path="/login" element = {<LogInView/>} />
             <Route path = "/logout" element = {<LogOutView/>} />
+            <Route path = "/signup" element = {<SignUpView/>} />
             <Route path = "/change-details" element = {<ChangeDetailsView/>} />
             <Route path = "/change-password" element = {<ChangePasswordView/>} />
             <Route path = "/profile" element = {<ProfileView/>}/>
