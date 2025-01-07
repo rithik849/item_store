@@ -3,6 +3,7 @@ import { useCookies } from "react-cookie"
 import { useAuth } from "../components/is_authenticated_component"
 import {url} from "../constants"
 import PaginatedView from "../components/paginated_component"
+import { getHeaders } from "../utils"
 
 export function ReviewForm(props){
 
@@ -13,8 +14,6 @@ export function ReviewForm(props){
         "comment" : ""
     })
 
-    const [cookies,setCookies] = useCookies()
-
     const [message, setMessage] = useState([])
 
     function submitHandler(event){
@@ -23,11 +22,7 @@ export function ReviewForm(props){
             {
                 method : "POST",
                 mode : 'cors',
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
+                headers : getHeaders(),
                 credentials : "include",
                 body : JSON.stringify({
                     "product": props.product,
