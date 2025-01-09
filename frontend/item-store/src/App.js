@@ -99,7 +99,6 @@ function App() {
       }
     </React.StrictMode>
     
-    //<PaginatedView endpoint="http://localhost:8000/products/?page=1" item={(key,values)=> <Product key={key} values={values}/>} />
   )
 
 };
