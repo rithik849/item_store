@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.test import TestCase
 from rest_framework.test import APITestCase, APIClient, api_settings
 import math
@@ -227,7 +228,7 @@ class BasketTestCase(APITestCase):
         assert(item.quantity == request_json['quantity'])
         product_price = Product.objects.get(id=request_json['product']).price
         self.user = Customer.objects.get(username='test')
-        assert(self.user.total_basket_cost == (5.5+3)*5 + (product_price*request_json['quantity']))
+        assert(self.user.total_basket_cost == Decimal((5.5+3)*5) + (product_price*request_json['quantity']))
         
     def test_add_current_item_to_basket(self):
         request_json = {
