@@ -224,7 +224,7 @@ class OrderViewSet(
         items = Basket.objects.filter(customer=user) # type: ignore
         
         if items.count()==0:
-            raise APIException("You do not have items in your basket.")
+            raise APIException(["You do not have items in your basket."])
         
         
         # Need to validate against products incase quantities have changed

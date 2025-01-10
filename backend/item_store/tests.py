@@ -446,6 +446,13 @@ class OrderTestCase(APITestCase):
         del self.user.total_basket_cost
         assert(self.user.total_basket_cost==0)
         
+    def test_make_empty_order(self):
+        Basket.objects.all().delete()
+        response = self.client.post("/orders/")
+        assert(response.status_code==500)
+        json = response.json()
+        assert('You do not have items in your basket.' in json)
+        
     def test_make_invalid_order(self):
         basket_before = Basket.objects.filter(customer__username='test').order_by("product__id")
         book = basket_before.get(product__name="Book")
