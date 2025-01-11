@@ -4,13 +4,12 @@ import {LogInView} from "./Authentication/LogInView"
 import {LogOutView} from "./Authentication/LogOutView";
 import { ChangeDetailsView } from "./Authentication/ChangeDetailsView";
 import { ChangePasswordView } from "./Authentication/ChangePasswordView";
-import {AuthProvider, Authenticated, NotAuthenticated} from "./components/is_authenticated_component"
+import {AuthProvider} from "./components/is_authenticated_component"
 import {CookiesProvider} from "react-cookie"
 import {createBrowserRouter, createRoutesFromElements, Route, RouterProvider} from 'react-router-dom'
 import {ProfileView} from './Authentication/ProfileView'
 import { ProductDetailView, Products } from "./Product/product";
 import { Baskets } from "./Basket/basket";
-import { useAuth } from "./components/is_authenticated_component";
 import {url} from "./constants"
 import { Orders, OrderDetails } from "./Order/order";
 import { Navigation } from "./components/navigation";
@@ -59,29 +58,27 @@ function App() {
       const abort_signal = controller.signal
 
       fetch(url+"/customers/login/",{
-          "method":"GET",
-          "Content-Type":"application/json",
-          "signal":abort_signal,
-          "credentials":"include"}
+        "method":"GET",
+        "signal":abort_signal,
+        "credentials":"include"}
       ).then(async response => {
-          if (response.status==200){
-              const json = await response.json()
-              if (json.is_authenticated===true){
-                  console.log(json.customer)
-                  setUser(json.customer)
-                  setAuthenticated(json.is_authenticated)
-              }else{
-                  setUser({'username':"",'email':""})
-                  setAuthenticated(false)
-              }
+        if (response.status===200){
+          const json = await response.json()
+          if (json.is_authenticated===true){
+            console.log(json.customer)
+            setUser(json.customer)
+            setAuthenticated(json.is_authenticated)
+          }else{
+            setUser({'username':"",'email':""})
+            setAuthenticated(false)
           }
+        }
       }).catch(
           (err) => {
-              console.log(err)
-              if (!controller.signal.aborted){
-                  console.log("Signal not aborted")
-
-              }
+            console.log(err)
+            if (!controller.signal.aborted){
+                console.log("Signal not aborted")
+            }
           }
       )
       return () => {controller.abort()}
