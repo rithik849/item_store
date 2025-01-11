@@ -37,6 +37,20 @@ class UpdateDetailsSerializer(BaseSerializer):
     class Meta:
         model = Customer
         exclude = ['password']
+        extra_kwargs = {
+            "username" : {
+                "error_messages" : {
+                    "required" : "Username unspecified.",
+                    "blank" : "Username can not be blank."
+                }
+            },
+            "email" : {
+                "error_messages" : {
+                    "required" : "Email unspecified.",
+                    "blank" : "Email can not be blank."
+                }
+            }
+        }
         
     def validate_username(self, value):
         instance : Customer = self.instance # type: ignore
