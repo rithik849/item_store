@@ -1,13 +1,12 @@
 import {useState } from "react"
-import { useCookies } from "react-cookie"
-import { useAuth } from "../components/is_authenticated_component"
+import {useAuth} from "../components/is_authenticated_component"
 import {url} from "../constants"
 import PaginatedView from "../components/paginated_component"
-import { getHeaders } from "../utils"
+import {getHeaders} from "../utils"
 
 export function ReviewForm(props){
 
-    const {user, isAuthenticated, login, logout} = useAuth()
+    const {isAuthenticated} = useAuth()
 
     const [formData,setFormData] = useState({
         "rating" : 1,
@@ -84,7 +83,7 @@ export function ReviewForm(props){
 function ReviewCard(props){
     console.log(props)
     return (
-        <div>
+        <div className="w-50 pb-5">
             <h2>{props.values['customer']['username']}, {'★'.repeat(parseInt(props.values['rating']))}</h2>
             <h3>{props.values['comment']}</h3>
         </div>
@@ -92,5 +91,5 @@ function ReviewCard(props){
 }
 
 export function Reviews(props){
-    return <PaginatedView endpoint={url+"/reviews/"+props.product+"/"} item={(key,values) => <ReviewCard key={key} values={values}/>}/>
+    return <PaginatedView endpoint={url+"/reviews/"+props.product+"/"} displayClass={"d-flex justify-content-center align-items-center flex-column border border-primary w-100 h-50 overflow-auto"} item={(key,values) => <ReviewCard key={key} values={values}/>}/>
 }

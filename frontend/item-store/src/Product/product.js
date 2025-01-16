@@ -2,9 +2,8 @@ import {url} from "../constants"
 import Product from "./product_card"
 import {useState, useEffect} from "react"
 import { useAuth } from "../components/is_authenticated_component"
-import { useCookies } from "react-cookie"
 import { ReviewForm, Reviews } from "../Review/review_components"
-import { useParams , useLocation } from "react-router-dom"
+import { useParams} from "react-router-dom"
 import PaginatedView from "../components/paginated_component";
 import { useNavigate } from "react-router-dom"
 import { ErrorView } from "../components/errorView"
@@ -21,7 +20,7 @@ export function Products(){
         }
         return handleClick
     }
-    return <PaginatedView endpoint={url+"/products/?page=1"} msg={""} item={(key,values)=> <div key={key} onClick={generateClickHandler(values)}> <Product values={values} /> </div> } />
+    return <PaginatedView endpoint={url+"/products/?page=1"} msg={""} displayClass="d-flex flex-row flex-wrap justify-content-center" item={(key,values)=> <div key={key} className="border border-danger rounded px-2" onClick={generateClickHandler(values)}> <Product values={values} /> </div> } />
 }
 
 
@@ -29,8 +28,7 @@ export function AddProductToBasketForm(props){
 
     const [quantity, setQuantity] = useState(0)
     const [message,setMessage] = useState("")
-
-    const [cookies,setCookies] = useCookies()
+    const [error, setError] = useState(false)
 
     // Check if product is in the basket, if it is display its quantity instead of 0.
     useEffect(() => {
@@ -107,7 +105,7 @@ export function AddProductToBasketForm(props){
             <input type="number" name="quantity" min={0} max={99} step="1" value={quantity} onChange={handleChange}/>
             <button onClick={handleSubmit}>{"Add to Basket"}</button>
         </form>
-        <p>{message}</p>
+        <p className={error ? "text-danger" : "text-success"}>{message}</p>
         </>
     )
 }
@@ -121,10 +119,9 @@ export function ProductDetailView(){
     */
 
     const params = useParams()
-    const location = useLocation()
     const [data, setData] = useState(null)
     const [error,setError] = useState(null)
-    const {isAuthenticated, user, login, logout} = useAuth()
+    const {isAuthenticated} = useAuth()
 
     useEffect(() => {
         fetch(url + "/products/"+params.id)
@@ -148,7 +145,7 @@ export function ProductDetailView(){
     },[])
 
     if (error!==null){
-        return <ErrorView message = {error['detail']} />
+        return <ErrorView message = {error} />
     }
 
     return (

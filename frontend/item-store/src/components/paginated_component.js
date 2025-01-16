@@ -1,17 +1,15 @@
 import {useState, useEffect} from "react"
-import { useCookies } from "react-cookie";
 import { formatter } from "../utils";
 import { ErrorView } from "./errorView";
 import Button from 'react-bootstrap/Button'
 import { getHeaders } from "../utils";
 
-function PaginatedView({endpoint,item,msg}){
+function PaginatedView({endpoint,item,msg,displayClass}){
 
     const [state, setState]= useState(null);
     const [url, setUrl] = useState(endpoint)
     const [error,setError] = useState(null)
 
-    const [cookies,setCookies] = useCookies()
   
     useEffect(() => {
         fetch(url,{
@@ -45,28 +43,36 @@ function PaginatedView({endpoint,item,msg}){
 
 
     if (error !== null){
-      return <ErrorView message={error['detail']}/>
+        console.error(error)
+        if ('detail' in error){
+            return <ErrorView message={error['detail']}/>
+        }
+        return <ErrorView message={error.toString()}/>
     }
 
 
     return (
         <>
-        {state && ('total' in state) && <h1>Total: {formatter.format(state.total)}</h1>}
-        <div className="App">
-          {state && 
+        {(state && ('total' in state)) ? <h1>Total: {formatter.format(state.total)}</h1> : ""}
+        <div className={displayClass}>
+          {state ? 
           state['results'].map(
             (display_item,index) => item(index,display_item)
-            )
+            ) : ""
           }
         </div>
-        {
-          ((state!=null && state['previous']!=null)) && 
-          <Button className='' onClick={()=>{setUrl(state['previous'])}}>{"Prev"}</Button>
-        }
-        {
-          ((state!=null && state['next']!=null)) && 
-          <Button onClick={()=>{setUrl(state['next'])}}>{"Next"}</Button>
-        }
+        <div className= "d-flex justify-content-center btn-group pt-5" role="group">
+          {
+            ((state!=null && state['previous']!=null)) ? 
+            <Button type="button" className='btn btn-primary' onClick={()=>{setUrl(state['previous'])}}>{"Prev"}</Button> : 
+            ""
+          }
+          {
+            ((state!=null && state['next']!=null)) ?
+            <Button className='btn btn-primary' onClick={()=>{setUrl(state['next'])}}>{"Next"}</Button> :
+            ""
+          }
+        </div>
         </>
     );
 }
