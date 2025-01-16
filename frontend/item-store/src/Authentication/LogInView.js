@@ -1,21 +1,20 @@
-import { useState, useEffect } from "react";
-import {Cookies, useCookies} from "react-cookie"
+import { useState} from "react";
 import {NotAuthenticated, useAuth} from "../components/is_authenticated_component"
 import {url} from "../constants"
 import { useNavigate } from "react-router-dom";
 import { getHeaders } from "../utils";
+import { useCookies } from "react-cookie";
 
 export function LogInView(){
 
-    const {user, isAuthenticated, login, logout} = useAuth()
+    const {login} = useAuth()
     const navigate = useNavigate()
+
 
     const [formData, setFormData] = useState({
         'username' : "",
         "password" : ""
     })
-
-    const [cookies,setCookies] = useCookies()
 
     async function handleSubmit(event){
         event.preventDefault();
@@ -30,21 +29,24 @@ export function LogInView(){
                     "password" : formData.password
                 })
             }
-        ).then(async (response) => {
-                const json = await response.json()
-                if (response.status===200){
-                    login(json.customer)
-                    navigate("/")
-                    
-                    // alert("CSRF: " + cookies.get("csrftoken")+", SESSION: " + cookies.get("sessionid"))
-                }else if (response.status===401){
-                    alert(json['detail'])
-                }else{
-                    alert("Something went wrong")
-                }
+        ).then((response) => {
+            if (!response.ok){
+                return Promise.reject(response)
             }
-        )
-        }
+
+            return response.json()
+        }).then((json) => {
+                console.log(json)
+                login(json.customer)
+                navigate("/")
+        }).catch(async (response) => {
+            if (response.headers.get('content-type') === 'application/json'){
+                let json = await response.json()
+                alert(json['detail'])
+            }
+            console.error(response)
+        })
+    }
         
         const handleChange = (event) => {
         event.preventDefault()

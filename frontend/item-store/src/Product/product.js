@@ -41,12 +41,19 @@ export function AddProductToBasketForm(props){
                 headers : getHeaders(),
                 credentials : "include"
             }
-        ).then(async (response) => {
-            const json = await response.json()
-            if (response.status===200){
-                console.log(json['quantity'])
-                setQuantity(json['quantity'])
+        )
+        .then(response => {
+            if (!response.ok){
+                return Promise.reject(response)
             }
+            return response.json()
+        })
+        .then(json => {
+            console.log(json['quantity'])
+            setQuantity(json['quantity'])
+        })
+        .catch(response => {
+            console.error(response)
         })
     },[])
 
@@ -63,15 +70,29 @@ export function AddProductToBasketForm(props){
                     "quantity" : quantity
                 })
             }
-        ).then(async (response) => {
-            const json = await response.json()
-            console.log(json)
-            if (response.status===200){
+        )
+        .then(response => {
+            if (response.ok){
+                return response.json()
+            }
+            return Promise.reject(response)
+        }).then(json => {
+            if (json['success']){
                 setMessage(json['detail'])
+                setError(false)
             }
             else{
-                setMessage(JSON.stringify(json))
+                setMessage(json['detail'])
+                setError(true)
             }
+        }).catch(async response => {
+            if ('json' in response){
+                let json = await response.json()
+                setMessage(json['detail'])
+                setError(true)
+            }
+            console.error(response)
+
         })
     }
 
@@ -106,13 +127,22 @@ export function ProductDetailView(){
     const {isAuthenticated, user, login, logout} = useAuth()
 
     useEffect(() => {
-        fetch(url + "/products/"+params.id).then(async response =>{
-            const json = await response.json()
-            if (response.status===200){
-                setData(json)
+        fetch(url + "/products/"+params.id)
+        .then(response => {
+
+            if (!response.ok){
+                return Promise.reject(response)
             }
-            else{
-                setError(json)
+            return response.json()
+        })
+        .then(json =>{
+            setData(json)
+        })
+        .catch(async (response) => {
+            const json = await response.json()
+            console.error(response)
+            if (json['detail']!==undefined){
+                setError(json['detail'])
             }
         })
     },[])

@@ -14,19 +14,32 @@ function PaginatedView({endpoint,item,msg}){
     const [cookies,setCookies] = useCookies()
   
     useEffect(() => {
-      const response = fetch(url,             {
-        "method" : "GET",
-        mode : "cors",
-        headers : getHeaders(),
-        credentials : "include"
-    }).then(async res => {
-        const body = await res.json()
-        if (res.status === 200){
-          setState(body)
-        }else{
-          setError(body)
+        fetch(url,{
+            method : "GET",
+            mode : "cors",
+            headers : getHeaders(),
+            credentials : "include"
+        }).then( response => {
+            // Check if response is ok
+            if (!response.ok){
+                return Promise.reject(response)
+            }
+
+            return response.json()
+        }).then(async json => {
+            setState(json)
+        }).catch(
+            async (error) => {
+                console.log(error.headers.get('content-type'))
+                if (error.headers.get('content-type') === "application/json"){
+                    console.log('HERE')
+                    const json_error = await error.json()
+                    setError(json_error)
+                }else{
+                    setError(error)
+                }
         }
-      })
+      )
   
     },[url,msg])
 

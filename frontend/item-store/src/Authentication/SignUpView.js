@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import {Cookies, useCookies} from "react-cookie"
+import { useState} from "react";
 import {NotAuthenticated, useAuth} from "../components/is_authenticated_component"
 import {url} from "../constants"
 import { useNavigate } from "react-router-dom";
@@ -7,7 +6,7 @@ import { getHeaders } from "../utils";
 
 export function SignUpView(){
 
-    const {user, isAuthenticated, login, logout} = useAuth()
+    const {login} = useAuth()
     const navigate = useNavigate()
 
     const [formData, setFormData] = useState({
@@ -35,24 +34,31 @@ export function SignUpView(){
                 })
             }
         ).then(async (response) => {
-                const json = await response.json()
-                if (response.status===200){
-                    login(json.user)
-                    navigate("/")
-                    
-                    // alert("CSRF: " + cookies.get("csrftoken")+", SESSION: " + cookies.get("sessionid"))
-                }else{
-                    let errors = []
-                    for (let key in json){
-                        console.log(json[key])
-                        errors = errors.concat(json[key])
-
-                    }
-                    console.log(errors)
-                    setMessage(errors)
-                }
+            if (!response.ok){
+                return Promise.reject(response)
             }
-        )
+            return response.json()
+        }).then(async (json) => {
+                // const json = await response.json()
+                // if (response.status===200){
+                login(json.user)
+                navigate("/")
+                    
+                //     // alert("CSRF: " + cookies.get("csrftoken")+", SESSION: " + cookies.get("sessionid"))
+                // }
+        }).catch(async (response) => {
+            console.log(response)
+            const json = await response.json()
+            let errors = []
+            for (let key in json){
+                console.log(json[key])
+                errors = errors.concat(json[key])
+
+            }
+            console.log(errors)
+            setMessage(errors)
+
+        })
     }
         
     const handleChange = (event) => {

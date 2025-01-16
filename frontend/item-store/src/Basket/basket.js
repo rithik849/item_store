@@ -17,7 +17,7 @@ export function Baskets(){
     const [msg,setMsg] = useState("")
 
     async function placeOrder(){
-        const response = fetch(url+"/orders/",{
+        fetch(url+"/orders/",{
             method : "POST",
             mode : "cors",
             headers : {
@@ -27,20 +27,31 @@ export function Baskets(){
             },
             credentials : "include"
         })
-        .then(async res => {
-            const json = await res.json()
+        .then(response => {
+            if (!response.ok){
+                return Promise.reject(response)
+            }
+
+            return response.json()
+        })
+        .then(json => {
             setMsg(json)
             alert(json.detail)
 
         })
-        .catch((err) => {
-            console.log(err)
-            alert(err['detail'])
+        .catch(async (response) => {
+            console.error(response)
+            try{
+                const json = await response.json()
+                alert(json['detail'])
+            }catch{
+                alert('Something went wrong')
+            }
         })
     }
 
     async function handleDel(){
-        const response = fetch(url+"/baskets/",{
+        fetch(url+"/baskets/",{
             method : "DELETE",
             mode : "cors",
             headers : {
@@ -50,14 +61,20 @@ export function Baskets(){
             },
             credentials : "include"
         })
-        .then(async res => {
-            const json = await res.json()
+        .then(response => {
+            if (!response.ok){
+                return Promise.reject(response)
+            }
+
+            return response.json()
+        })
+        .then(json => {
             setMsg(json)
             alert(json.detail)
 
         })
-        .catch((err) => {
-            console.log(err)
+        .catch((response) => {
+            console.error(response)
             alert('Something went wrong!')
         })
     }
@@ -72,8 +89,7 @@ export function Baskets(){
 }
 
 function Basket({key,values}){
-    console.log(values)
-    const [cookies,setCookies] = useCookies()
+    const [cookies] = useCookies()
     const nav = useNavigate()
     const [msg,setMsg] = useContext(BasketContext)
     const [quantity,setQuantity] = useState(0)
@@ -90,12 +106,20 @@ function Basket({key,values}){
                 },
                 credentials : "include"
             }
-        ).then(async (response) => {
-            const json = await response.json()
-            if (response.status===200){
+        )
+        .then(response => {
+            if (!response.ok){
+                return Promise.reject(response)
+            }
+
+            return response.json()
+        })
+        .then(json => {
                 console.log(json['quantity'])
                 setQuantity(json['quantity'])
-            }
+        })
+        .catch(response => {
+            console.error(response)
         })
     },[])
 
@@ -109,7 +133,7 @@ function Basket({key,values}){
     }
 
     function handleRemoveItemFromBasket(){
-        const response = fetch(values.url,{
+        fetch(values.url,{
             method : "DELETE",
             mode : "cors",
             headers : {
@@ -132,7 +156,7 @@ function Basket({key,values}){
 
     function changeItemQuantity(event){
         event.preventDefault()
-        const response = fetch(values.url,{
+        fetch(values.url,{
             method : "PATCH",
             mode : "cors",
             headers : {
@@ -174,5 +198,6 @@ function Basket({key,values}){
         <button onClick={changeItemQuantity}>{"Change Item Quantity"}</button>
     </form>
     <button onClick={handleRemoveItemFromBasket}>Remove</button></>
+    
 
 }

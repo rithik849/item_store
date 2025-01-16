@@ -1,28 +1,25 @@
-import {Cookies, useCookies} from "react-cookie"
-import { useEffect, useState } from "react"
-import { useAuth, Authenticated } from "../components/is_authenticated_component"
+import {useState} from "react"
+import {useAuth, Authenticated} from "../components/is_authenticated_component"
 import {url} from "../constants"
-import { getHeaders } from "../utils"
+import {getHeaders} from "../utils"
 
 export function ChangeDetailsView(){
 
-    const {user, isAuthenticated, login, logout, update} = useAuth()
+    const {user, update} = useAuth()
 
     const [message, setMessage] = useState([])
 
     const [formData, setFormData] = useState({
-        'username' : "",
-        "email" : ""
+        'username' : user==null ? "" : user.username,
+        "email" : user===null ? "" : user.email
     })
 
-    const [cookies,setCookies] = useCookies()
-
-    useEffect(()=>{
-        if (user!==null){
+    // useEffect(()=>{
+    //     if (user!==null){
             
-            setFormData(values => ({...formData,'username' : user.username,'email' : user.email}))
-        }
-    },[user])
+    //         setFormData(values => ({...formData,'username' : user.username,'email' : user.email}))
+    //     }
+    // },[user,formData])
 
     async function handleSubmit(event){
         event.preventDefault();
@@ -37,26 +34,39 @@ export function ChangeDetailsView(){
                     "email" : formData.email
                 })
             }
-        ).then(async (response) => {
-            const json = await response.json()
-                if (response.status===200){
-                    setMessage([json.detail])
-                    update(formData)
-                }else if (response.status===400){
-                    let errors = ""
-                    for (let key in json.detail){
-                        errors += json.detail[key]
-
-                    }
-                    setMessage(errors.split("."))
-                }
+        ).then((response) => {
+            if (!response.ok){
+                return Promise.reject(response)
             }
-        )
+            return response.json()
+        }).then((json) => {
+            // if (response.status===200){
+            setMessage([json.detail])
+            update(formData)
+            // }else if (response.status===400){
+            //     let errors = ""
+            //     for (let key in json.detail){
+            //         errors += json.detail[key]
+
+            //     }
+            //     setMessage(errors.split("."))
+            // }
+        }).catch(async (response) => {
+            if (response.headers.get("content-type") === "application/json"){
+                let json = await response.json()
+                let errors = ""
+                for (let key in json.detail){
+                    errors += json.detail[key]
+
+                }
+                setMessage(errors.split("."))
+            }
+        })
     }
         
     const handleChange = (event) => {
         event.preventDefault()
-        setFormData(values => ({...formData,[event.target.name] : event.target.value}))
+        setFormData(data => ({...data, [event.target.name] : event.target.value}))
     }
 
     return (

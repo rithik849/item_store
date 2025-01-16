@@ -58,20 +58,23 @@ function App() {
       const abort_signal = controller.signal
 
       fetch(url+"/customers/login/",{
-        "method":"GET",
-        "signal":abort_signal,
-        "credentials":"include"}
-      ).then(async response => {
-        if (response.status===200){
-          const json = await response.json()
-          if (json.is_authenticated===true){
-            console.log(json.customer)
-            setUser(json.customer)
-            setAuthenticated(json.is_authenticated)
-          }else{
-            setUser({'username':"",'email':""})
-            setAuthenticated(false)
-          }
+        method:"GET",
+        credentials:"include",
+        signal:abort_signal
+      }).then((response) => {
+        if (!response.ok){
+          return Promise.reject(response)
+        }
+        return response.json()
+      }).then((json) => {
+        console.log(json)
+        if (json.is_authenticated===true){
+          console.log(json.customer)
+          setUser(json.customer)
+          setAuthenticated(json.is_authenticated)
+        }else{
+          setUser({'username':"",'email':""})
+          setAuthenticated(false)
         }
       }).catch(
           (err) => {

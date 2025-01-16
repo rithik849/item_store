@@ -30,23 +30,28 @@ export function ReviewForm(props){
                     "rating": formData.rating
                 })
             }
-        ).then(
-            async (response) => {
-                if (response.status===200){
-                    alert("Review submitted")
-                }else{
-                    const json = await response.json()
-                    console.log(json)
-                    let errors = ""
-                    for (let key in json){
-                        errors += json[key]
-
-                    }
-                    console.log(errors)
-                    setMessage(errors.split("."))
-                }
-            }
         )
+        .then((response) => {
+            if (!response.ok){
+                return Promise.reject(response)
+            }
+
+            return response.json()
+        })
+        .then((json) => {
+                alert("Review submitted")
+        })
+        .catch(async (response) => {
+            const json = await response.json()
+            console.error(json)
+            let errors = ""
+            for (let key in json){
+                errors += json[key]
+
+            }
+            console.error(errors)
+            setMessage(errors.split("."))
+        })
     }
 
     const handleChange = (event) => {
