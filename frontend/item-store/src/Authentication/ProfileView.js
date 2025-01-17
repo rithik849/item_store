@@ -1,13 +1,10 @@
-import {Cookies, useCookies} from "react-cookie"
-import { useEffect, useState } from "react"
 import { useAuth, Authenticated } from "../components/is_authenticated_component"
 import { NavLink } from "react-router-dom";
 
 export function ProfileView(){
 
-    const {user, isAuthenticated, login, logout} = useAuth()
+    const {user, isAuthenticated} = useAuth()
 
-    const [message, setMessage] = useState([])
 
     return ( 
         <Authenticated>

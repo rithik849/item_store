@@ -1,4 +1,4 @@
-import {Cookies, useCookies } from "react-cookie"
+import {Cookies} from "react-cookie"
 
 export const formatter = new Intl.NumberFormat('en-GB', {
     style: 'currency',

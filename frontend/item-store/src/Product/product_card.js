@@ -1,6 +1,3 @@
-import { useNavigate } from "react-router-dom"
-import { url } from "../constants"
-import { useState } from "react"
 import { formatter } from "../utils"
 
 function Product({values}){

@@ -1,6 +1,6 @@
-import {useState, useEffect, useLayoutEffect, useRef, useMemo, useContext, createContext} from "react"
+import {useState, useEffect, useMemo, useContext, createContext} from "react"
 import { ErrorView } from "./errorView"
-import {Cookies, useCookies} from "react-cookie"
+import {Cookies} from "react-cookie"
 import {url} from "../constants"
 import { getHeaders } from "../utils";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,6 @@ const AuthContext = createContext();
 export const AuthProvider = (props) => {
     const [user, setUser] = useState(props.user)
     const [isAuthenticated, setAuthenticated] = useState(props.isAuthenticated)
-    const [cookies, setCookies] = useCookies()
     
     // call this function when you want to authenticate the user
     const login = (data) => {
@@ -32,14 +31,14 @@ export const AuthProvider = (props) => {
                 credentials:"include",
             }
         ).then(request =>{
-            if (request.status===200){
+            if (request.ok){
                 setUser({'username':"",'email':""})
                 setAuthenticated(false)
                 const obj = new Cookies()
                 obj.remove('csrftoken')
+                obj.remove('sessionid')
             }
-        }
-        )
+        })
         
     }
   
@@ -64,18 +63,7 @@ export function useAuth(){
 
 export function Authenticated(props){
 
-    const {user, isAuthenticated, login, logout} = useAuth()
-
-    const navigate = useNavigate()
-
-    useEffect(
-        () => {
-        if (!isAuthenticated){
-            setTimeout(() => {
-                navigate('/')
-            }, 2000)
-        }
-    },[isAuthenticated])
+    const {user, isAuthenticated} = useAuth()
 
     if ((isAuthenticated===true && user.username!=="")){
         return (props.children)
@@ -90,7 +78,7 @@ export function Authenticated(props){
 }
 
 export function NotAuthenticated(props){
-    const {user, isAuthenticated, login, logout} = useAuth()
+    const {user, isAuthenticated} = useAuth()
 
     if (isAuthenticated===false && user.username===""){
         return (props.children)

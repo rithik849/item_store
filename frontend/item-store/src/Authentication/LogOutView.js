@@ -4,7 +4,7 @@ import { useAuth } from "../components/is_authenticated_component"
 
 export function LogOutView(){
 
-    const {user, isAuthenticated, login, logout} = useAuth()
+    const {logout} = useAuth()
     const nav = useNavigate()
 
     function handleSubmit(event){
@@ -15,7 +15,7 @@ export function LogOutView(){
 
     return(
         <Authenticated>
-        {isAuthenticated && 
+        { 
             <div>
                 <button onClick= {handleSubmit}>{"Log Out"}</button>
             </div>
