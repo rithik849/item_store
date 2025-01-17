@@ -18,34 +18,35 @@ export function LogInView(){
 
     async function handleSubmit(event){
         event.preventDefault();
-        fetch(url+"/customers/login/",
-            {
-                method : "POST",
-                mode : 'cors',
-                headers : getHeaders(),
-                credentials : "include",
-                body : JSON.stringify({
-                    "username" : formData.username,
-                    "password" : formData.password
-                })
-            }
-        ).then((response) => {
-            if (!response.ok){
-                return Promise.reject(response)
-            }
+        let json
+        let response
+        try{
+            response = await fetch(url+"/customers/login/",
+                {
+                    method : "POST",
+                    mode : 'cors',
+                    headers : getHeaders(),
+                    credentials : "include",
+                    body : JSON.stringify({
+                        "username" : formData.username,
+                        "password" : formData.password
+                    })
+                }
+            )
 
-            return response.json()
-        }).then((json) => {
-                console.log(json)
-                login(json.customer)
-                navigate("/")
-        }).catch(async (response) => {
-            if (response.headers.get('content-type') === 'application/json'){
-                let json = await response.json()
+            json = await response.json()
+            if (!response.ok){
+                throw Error('There was a problem')
+            }
+            login(json.customer)
+            navigate("/")
+            
+        }catch (error){
+            console.error(response)
+            if ('detail' in json){
                 alert(json['detail'])
             }
-            console.error(response)
-        })
+        }
     }
         
         const handleChange = (event) => {

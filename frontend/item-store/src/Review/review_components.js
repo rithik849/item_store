@@ -15,42 +15,42 @@ export function ReviewForm(props){
 
     const [message, setMessage] = useState([])
 
-    function submitHandler(event){
+    async function submitHandler(event){
         event.preventDefault()
-        fetch(url+"/reviews/",
-            {
-                method : "POST",
-                mode : 'cors',
-                headers : getHeaders(),
-                credentials : "include",
-                body : JSON.stringify({
-                    "product": props.product,
-                    "comment": formData.comment,
-                    "rating": formData.rating
-                })
-            }
-        )
-        .then((response) => {
+        let response
+        let json
+
+        try{
+            response = await fetch(url+"/reviews/",
+                {
+                    method : "POST",
+                    mode : 'cors',
+                    headers : getHeaders(),
+                    credentials : "include",
+                    body : JSON.stringify({
+                        "product": props.product,
+                        "comment": formData.comment,
+                        "rating": formData.rating
+                    })
+                }
+            )
+            json = await response.json()
+
             if (!response.ok){
-                return Promise.reject(response)
+                throw Error(JSON.stringify(json))
             }
-
-            return response.json()
-        })
-        .then((json) => {
-                alert("Review submitted")
-        })
-        .catch(async (response) => {
-            const json = await response.json()
-            console.error(json)
-            let errors = ""
+            alert('Review Submitted')
+        }catch (error){
+            console.error(error)
+            json = JSON.parse(error)
+            let error_messages = ""
             for (let key in json){
-                errors += json[key]
+                error_messages += json[key]
 
             }
-            console.error(errors)
-            setMessage(errors.split("."))
-        })
+            console.error(error_messages)
+            setMessage(error_messages.split("."))
+        }
     }
 
     const handleChange = (event) => {

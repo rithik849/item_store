@@ -1,9 +1,8 @@
-import {useState, useEffect, useMemo, useContext, createContext} from "react"
+import {useState, useMemo, useContext, createContext} from "react"
 import { ErrorView } from "./errorView"
 import {Cookies} from "react-cookie"
 import {url} from "../constants"
 import { getHeaders } from "../utils";
-import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 export const AuthProvider = (props) => {
@@ -23,22 +22,29 @@ export const AuthProvider = (props) => {
   
     // call this function to sign out logged in user
     const logout = () => {
-        fetch(url+"/customers/logout/",
-            {
-                method:"POST",
-                mode : 'cors',
-                headers : getHeaders(),
-                credentials:"include",
+
+        let fetchLogOut = async () => {
+            let response
+            response = await fetch(url+"/customers/logout/",
+                {
+                    method:"POST",
+                    mode : 'cors',
+                    headers : getHeaders(),
+                    credentials:"include",
+                }
+            )
+            if (!response.ok){
+                console.log(response)
+                throw Error('There was a problem')
             }
-        ).then(request =>{
-            if (request.ok){
-                setUser({'username':"",'email':""})
-                setAuthenticated(false)
-                const obj = new Cookies()
-                obj.remove('csrftoken')
-                obj.remove('sessionid')
-            }
-        })
+            setUser({'username':"",'email':""})
+            setAuthenticated(false)
+            const obj = new Cookies()
+            obj.remove('csrftoken')
+            obj.remove('sessionid')
+        }
+
+        fetchLogOut().catch(error => console.error(error))
         
     }
   
@@ -50,7 +56,7 @@ export const AuthProvider = (props) => {
         logout,
         update
       }),
-      [user]
+      [user,isAuthenticated]
     )
 
     return <AuthContext.Provider value={value}>{props.children}</AuthContext.Provider>;

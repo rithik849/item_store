@@ -16,35 +16,37 @@ export function ChangePasswordView(){
 
     async function handleSubmit(event){
         event.preventDefault();
-        fetch(url+"/customers/change-password/",
-            {
-                method : "PATCH",
-                mode : 'cors',
-                headers : getHeaders(),
-                credentials : "include",
-                body : JSON.stringify({
-                    "password" : formData.password,
-                    "confirm_password" : formData.confirm_password
-                })
-            }
-        ).then((response) => {
+        let response
+        let json
+        try{
+            response = await fetch(url+"/customers/change-password/",
+                {
+                    method : "PATCH",
+                    mode : 'cors',
+                    headers : getHeaders(),
+                    credentials : "include",
+                    body : JSON.stringify({
+                        "password" : formData.password,
+                        "confirm_password" : formData.confirm_password
+                    })
+                }
+            )
+            json = await response.json()
             if (!response.ok){
-                return Promise.reject(response)
+                throw Error('Something went wrong')
             }
-            return response.json()
-        }).then((json) => {
             setMessage([json.detail])
-        }).catch(async (response) => {
-            if (response.headers.get("content-type") === "application/json"){
-                let json = await response.json()
-                let errors = ""
+        }catch (error){
+            console.error(error)
+            if (json !==undefined){
+                let error_messages = ""
                 for (let key in json.detail){
-                    errors += json.detail[key]
+                    error_messages += json.detail[key]
 
                 }
-                setMessage(errors.split("."))
+                setMessage(error_messages.split("."))
             }
-        })
+        }
     }
         
         const handleChange = (event) => {

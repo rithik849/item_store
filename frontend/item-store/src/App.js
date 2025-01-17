@@ -49,57 +49,62 @@ function CreateRoutes(){
 
 function App() {
 
-  const [user,setUser] = useState(null)
-  const [isAuthenticated, setAuthenticated] = useState(null)
+    const [user,setUser] = useState(null)
+    const [isAuthenticated, setAuthenticated] = useState(null)
 
-  useEffect(() => {
-      console.log("EFFECT MAIN")
-      const controller = new AbortController();
-      const abort_signal = controller.signal
+    useEffect(() => {
+        console.log("EFFECT MAIN")
+        const controller = new AbortController();
+        const abort_signal = controller.signal
 
-      fetch(url+"/customers/login/",{
-        method:"GET",
-        credentials:"include",
-        signal:abort_signal
-      }).then((response) => {
-        if (!response.ok){
-          return Promise.reject(response)
+        const fetchData = async () => {
+            let response
+            let json
+
+            response = await fetch(url+"/customers/login/",{
+                method:"GET",
+                credentials:"include",
+                signal:abort_signal
+                }
+            )
+            json = await response.json()
+
+            if (!response.ok){
+                throw Error('Something went wrong')
+            }
+
+            if (json.is_authenticated){
+                setUser(json.customer)
+                setAuthenticated(json.is_authenticated)
+            }else{
+                setUser({'username':"",'email':""})
+                setAuthenticated(false)
+            }
         }
-        return response.json()
-      }).then((json) => {
-        console.log(json)
-        if (json.is_authenticated===true){
-          console.log(json.customer)
-          setUser(json.customer)
-          setAuthenticated(json.is_authenticated)
-        }else{
-          setUser({'username':"",'email':""})
-          setAuthenticated(false)
-        }
-      }).catch(
-          (err) => {
-            console.log(err)
+
+        fetchData().catch(error => {
+            console.log(error)
             if (!controller.signal.aborted){
                 console.log("Signal not aborted")
             }
-          }
-      )
-      return () => {controller.abort()}
-  },[])
+        })
 
-  return (
-    <React.StrictMode>
-      {
-        isAuthenticated!==null && 
-        <AuthProvider user={user} isAuthenticated={isAuthenticated}>
-          <CookiesProvider>
-            <CreateRoutes/>
-          </CookiesProvider>
-        </AuthProvider>
-      }
-    </React.StrictMode>
-    
-  )
+        return () => {controller.abort()}
+    },[])
+
+    return (
+        <React.StrictMode>
+        {
+            isAuthenticated!==null && 
+            <AuthProvider user={user} isAuthenticated={isAuthenticated}>
+            <CookiesProvider>
+                <CreateRoutes/>
+            </CookiesProvider>
+            </AuthProvider>
+        }
+        </React.StrictMode>
+        
+    )
 
 };
 

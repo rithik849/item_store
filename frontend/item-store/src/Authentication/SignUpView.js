@@ -20,45 +20,82 @@ export function SignUpView(){
 
     async function handleSubmit(event){
         event.preventDefault();
-        fetch(url+"/customers/register/",
-            {
-                method : "POST",
-                mode : 'cors',
-                headers : getHeaders(),
-                credentials : "include",
-                body : JSON.stringify({
-                    "username" : formData.username,
-                    "email" : formData.email,
-                    "password" : formData.password,
-                    "password2" : formData.password2
-                })
-            }
-        ).then(async (response) => {
+        let response
+        let json
+        try{
+            response = await fetch(url+"/customers/register/",
+                {
+                    method : "POST",
+                    mode : 'cors',
+                    headers : getHeaders(),
+                    credentials : "include",
+                    body : JSON.stringify({
+                        "username" : formData.username,
+                        "email" : formData.email,
+                        "password" : formData.password,
+                        "password2" : formData.password2
+                    })
+                }
+            )
+
+            json = await response.json()
             if (!response.ok){
-                return Promise.reject(response)
+                throw Error('Something went wrong')
             }
-            return response.json()
-        }).then(async (json) => {
-                // const json = await response.json()
-                // if (response.status===200){
-                login(json.user)
-                navigate("/")
-                    
-                //     // alert("CSRF: " + cookies.get("csrftoken")+", SESSION: " + cookies.get("sessionid"))
-                // }
-        }).catch(async (response) => {
-            console.log(response)
-            const json = await response.json()
-            let errors = []
+            login(json.user)
+            navigate("/")
+
+        }catch (error){
+            console.error(error)
+            let error_messages = []
             for (let key in json){
                 console.log(json[key])
-                errors = errors.concat(json[key])
+                error_messages = error_messages.concat(json[key])
 
             }
-            console.log(errors)
-            setMessage(errors)
+            console.log(error_messages)
+            setMessage(error_messages)
+        }
 
-        })
+        // fetch(url+"/customers/register/",
+        //     {
+        //         method : "POST",
+        //         mode : 'cors',
+        //         headers : getHeaders(),
+        //         credentials : "include",
+        //         body : JSON.stringify({
+        //             "username" : formData.username,
+        //             "email" : formData.email,
+        //             "password" : formData.password,
+        //             "password2" : formData.password2
+        //         })
+        //     }
+        // ).then(async (response) => {
+        //     if (!response.ok){
+        //         return Promise.reject(response)
+        //     }
+        //     return response.json()
+        // }).then(async (json) => {
+        //         // const json = await response.json()
+        //         // if (response.status===200){
+        //         login(json.user)
+        //         navigate("/")
+                    
+        //         //     // alert("CSRF: " + cookies.get("csrftoken")+", SESSION: " + cookies.get("sessionid"))
+        //         // }
+        // }).catch(async (response) => {
+        //     console.log(response)
+        //     const json = await response.json()
+        //     let errors = []
+        //     for (let key in json){
+        //         console.log(json[key])
+        //         errors = errors.concat(json[key])
+
+        //     }
+        //     console.log(errors)
+        //     setMessage(errors)
+
+        // })
     }
         
     const handleChange = (event) => {

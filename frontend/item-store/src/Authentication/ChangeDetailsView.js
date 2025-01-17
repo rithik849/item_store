@@ -14,54 +14,80 @@ export function ChangeDetailsView(){
         "email" : user===null ? "" : user.email
     })
 
-    // useEffect(()=>{
-    //     if (user!==null){
-            
-    //         setFormData(values => ({...formData,'username' : user.username,'email' : user.email}))
-    //     }
-    // },[user,formData])
-
     async function handleSubmit(event){
         event.preventDefault();
-        fetch(url+"/customers/change-details/",
-            {
-                method : "POST",
-                mode : 'cors',
-                headers : getHeaders(),
-                credentials : "include",
-                body : JSON.stringify({
-                    "username" : formData.username,
-                    "email" : formData.email
-                })
-            }
-        ).then((response) => {
+        let response
+        let json
+        try{
+            response = await fetch(url+"/customers/change-details/",
+                {
+                    method : "POST",
+                    mode : 'cors',
+                    headers : getHeaders(),
+                    credentials : "include",
+                    body : JSON.stringify({
+                        "username" : formData.username,
+                        "email" : formData.email
+                    })
+                }
+            )
+            json = await response.json()
             if (!response.ok){
-                return Promise.reject(response)
+                throw Error('Something went wrong')
             }
-            return response.json()
-        }).then((json) => {
-            // if (response.status===200){
             setMessage([json.detail])
             update(formData)
-            // }else if (response.status===400){
-            //     let errors = ""
-            //     for (let key in json.detail){
-            //         errors += json.detail[key]
-
-            //     }
-            //     setMessage(errors.split("."))
-            // }
-        }).catch(async (response) => {
-            if (response.headers.get("content-type") === "application/json"){
-                let json = await response.json()
-                let errors = ""
+        }catch (error){
+            console.error(error)
+            if (json !== undefined){
+                let error_messages = ""
                 for (let key in json.detail){
-                    errors += json.detail[key]
+                    error_messages += json.detail[key]
 
                 }
-                setMessage(errors.split("."))
+                setMessage(error_messages.split("."))
             }
-        })
+        }
+
+        // fetch(url+"/customers/change-details/",
+        //     {
+        //         method : "POST",
+        //         mode : 'cors',
+        //         headers : getHeaders(),
+        //         credentials : "include",
+        //         body : JSON.stringify({
+        //             "username" : formData.username,
+        //             "email" : formData.email
+        //         })
+        //     }
+        // ).then((response) => {
+        //     if (!response.ok){
+        //         return Promise.reject(response)
+        //     }
+        //     return response.json()
+        // }).then((json) => {
+        //     // if (response.status===200){
+        //     setMessage([json.detail])
+        //     update(formData)
+        //     // }else if (response.status===400){
+        //     //     let errors = ""
+        //     //     for (let key in json.detail){
+        //     //         errors += json.detail[key]
+
+        //     //     }
+        //     //     setMessage(errors.split("."))
+        //     // }
+        // }).catch(async (response) => {
+        //     if (response.headers.get("content-type") === "application/json"){
+        //         let json = await response.json()
+        //         let errors = ""
+        //         for (let key in json.detail){
+        //             errors += json.detail[key]
+
+        //         }
+        //         setMessage(errors.split("."))
+        //     }
+        // })
     }
         
     const handleChange = (event) => {

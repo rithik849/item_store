@@ -32,66 +32,70 @@ export function AddProductToBasketForm(props){
 
     // Check if product is in the basket, if it is display its quantity instead of 0.
     useEffect(() => {
-        fetch(url+"/baskets/"+props.id,
-            {
-                "method" : "GET",
-                mode : "cors",
-                headers : getHeaders(),
-                credentials : "include"
-            }
-        )
-        .then(response => {
-            if (!response.ok){
-                return Promise.reject(response)
-            }
-            return response.json()
-        })
-        .then(json => {
-            console.log(json['quantity'])
-            setQuantity(json['quantity'])
-        })
-        .catch(response => {
-            console.error(response)
-        })
-    },[])
 
-    function handleSubmit(event){
+        const fetchData = async () => {
+            let response
+            let json
+
+            response = await fetch(url+"/baskets/"+props.id,
+                {
+                    "method" : "GET",
+                    mode : "cors",
+                    headers : getHeaders(),
+                    credentials : "include"
+                }
+            )
+            json = await response.json()
+
+            if (!response.ok){
+                throw Error('Basket item not found')
+            }
+
+            setQuantity(json['quantity'])
+        }
+
+        fetchData().catch((err) => {
+            console.log(err)
+        })
+    },[props.id])
+
+    async function handleSubmit(event){
         event.preventDefault()
-        fetch(url+"/baskets/",
-            {
-                method : "POST",
-                mode : 'cors',
-                headers : getHeaders(),
-                credentials : "include",
-                body : JSON.stringify({
-                    "product" : props.id,
-                    "quantity" : quantity
-                })
+        let response
+        let json
+        try{
+            response = await fetch(url+"/baskets/",
+                {
+                    method : "POST",
+                    mode : 'cors',
+                    headers : getHeaders(),
+                    credentials : "include",
+                    body : JSON.stringify({
+                        "product" : props.id,
+                        "quantity" : quantity
+                    })
+                }
+            )
+            json = await response.json()
+
+            if (!response.ok){
+                throw Error('Something went wrong')
             }
-        )
-        .then(response => {
-            if (response.ok){
-                return response.json()
-            }
-            return Promise.reject(response)
-        }).then(json => {
+
             if (json['success']){
                 setMessage(json['detail'])
                 setError(false)
-            }
-            else{
+            }else{
                 setMessage(json['detail'])
                 setError(true)
             }
-        }).catch(async response => {
-            if ('json' in response){
-                let json = await response.json()
+        }catch (err){
+            console.error(err)
+            if ('detail' in json){
                 setMessage(json['detail'])
                 setError(true)
             }
-            console.error(response)
-
-        })
+        }
     }
 
     function handleChange(event){
@@ -124,25 +128,28 @@ export function ProductDetailView(){
     const {isAuthenticated} = useAuth()
 
     useEffect(() => {
-        fetch(url + "/products/"+params.id)
-        .then(response => {
+        const fetchData = async () => {
+            let response
+            let json
+
+            response = await fetch(url + "/products/"+params.id)
+            json = await response.json()
 
             if (!response.ok){
-                return Promise.reject(response)
+                throw Error(JSON.stringify(json))
             }
-            return response.json()
-        })
-        .then(json =>{
+
             setData(json)
-        })
-        .catch(async (response) => {
-            const json = await response.json()
-            console.error(response)
-            if (json['detail']!==undefined){
+        }
+
+        fetchData().catch((error) => {
+            console.error(error)
+            let json = JSON.parse(error.message)
+            if ('detail' in json){
                 setError(json['detail'])
             }
         })
-    },[])
+    },[params.id])
 
     if (error!==null){
         return <ErrorView message = {error} />
