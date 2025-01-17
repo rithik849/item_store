@@ -1,6 +1,6 @@
 from typing import Optional
 import typing
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.shortcuts import render
 from django.contrib.auth.models import AnonymousUser
@@ -76,6 +76,8 @@ class CustomerChangePasswordView(GenericAPIView):
         if serializer.is_valid():
             serializer.save()
             json = CustomerSerializer(serializer.instance)
+            customer = Customer.objects.get(username=customer.username)
+            update_session_auth_hash(request,customer)
             return Response({'success' : True, 'object': json.data, 'detail': 'Password has been changed successfully.'}, status=status.HTTP_200_OK)
         return Response({"success" : False, 'detail': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
