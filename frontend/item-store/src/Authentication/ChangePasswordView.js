@@ -1,7 +1,8 @@
 import {useState } from "react"
 import { useAuth, Authenticated } from "../components/is_authenticated_component"
 import {url} from "../constants"
-import { getHeaders } from "../utils"
+import { getHeaders, process_errors } from "../utils"
+import { DisplayMessage } from "../components/errorView"
 
 export function ChangePasswordView(){
 
@@ -12,6 +13,7 @@ export function ChangePasswordView(){
         "confirm_password" : ""
     })
     const [message, setMessage] = useState([])
+    const [isError, setError] = useState(false)
 
 
     async function handleSubmit(event){
@@ -36,20 +38,18 @@ export function ChangePasswordView(){
                 throw Error('Something went wrong')
             }
             setMessage([json.detail])
+            setError(false)
         }catch (error){
             console.error(error)
-            if (json !==undefined){
-                let error_messages = ""
-                for (let key in json.detail){
-                    error_messages += json.detail[key]
-
-                }
-                setMessage(error_messages.split("."))
+            if (json){
+                let error_messages = process_errors(json)
+                setMessage(error_messages)
+                setError(true)
             }
         }
     }
         
-        const handleChange = (event) => {
+    const handleChange = (event) => {
         event.preventDefault()
         setFormData(values => ({...formData,[event.target.name] : event.target.value}))
 
@@ -69,12 +69,8 @@ export function ChangePasswordView(){
 
                     <button type="submit">Change Password</button>
                 </form>
-                <div>
-                {
-                message.map(
-                    (error,index) => <p key={index}>{error}</p>
-                )
-                }
+                <div className={isError ? 'text-danger' : 'text-success'}>
+                    <DisplayMessage messages={message}/>
                 </div>
             </>}
         </Authenticated>

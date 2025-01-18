@@ -2,8 +2,9 @@ import { useState} from "react";
 import {NotAuthenticated, useAuth} from "../components/is_authenticated_component"
 import {url} from "../constants"
 import { useNavigate } from "react-router-dom";
-import { getHeaders } from "../utils";
+import { getHeaders, process_errors } from "../utils";
 import { useCookies } from "react-cookie";
+import { DisplayMessage } from "../components/errorView";
 
 export function LogInView(){
 
@@ -15,6 +16,9 @@ export function LogInView(){
         'username' : "",
         "password" : ""
     })
+
+    const [message, setMessage] = useState([])
+    const [isError,setError] = useState(false)
 
     async function handleSubmit(event){
         event.preventDefault();
@@ -43,8 +47,10 @@ export function LogInView(){
             
         }catch (error){
             console.error(response)
-            if ('detail' in json){
-                alert(json['detail'])
+            if (json){
+                let error_messages = process_errors(json)
+                setMessage(error_messages)
+                setError(true)
             }
         }
     }
@@ -69,6 +75,9 @@ export function LogInView(){
 
                 <button type="submit">Login</button>
             </form>
+            <div className={isError ? "text-danger" : 'text-success'}>
+                <DisplayMessage messages={message}/>
+            </div>
         </NotAuthenticated>
     )
 }

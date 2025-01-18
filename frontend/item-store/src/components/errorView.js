@@ -21,3 +21,12 @@ export function ErrorView({message}){
         </div>
     )
 }
+
+export function DisplayMessage({messages}){
+
+    return (
+        <ul>
+        {messages.map((message,idx) => <li key={idx}>{message}</li>)}
+        </ul>
+    )
+}

@@ -2,11 +2,12 @@
 import { useNavigate } from "react-router-dom"
 import { url } from "../constants"
 import PaginatedView from "../components/paginated_component";
-import { formatter, getHeaders } from "../utils";
+import { formatter, getHeaders, process_errors } from "../utils";
 import { createContext, useContext } from "react";
 import { useCookies } from "react-cookie";
 import { useState, useEffect } from "react";
 import { Authenticated } from "../components/is_authenticated_component";
+import { DisplayMessage } from "../components/errorView";
 
 // Components to view basket products and change their amounts
 
@@ -15,7 +16,8 @@ const BasketContext = createContext()
 export function Baskets(){
     
     const [cookies,setCookies] = useCookies()
-    const [msg,setMsg] = useState("")
+    const [message,setMessage] = useState([])
+    const [isError,setError] = useState(false)
 
     async function placeOrder(){
         let response
@@ -32,13 +34,20 @@ export function Baskets(){
                 credentials : "include"
             })
             json = await response.json()
-            setMsg(json.detail)
+            if (!response.ok){
+                throw Error('Something went wrong')
+            }
+            setMessage(json.detail)
+            setError(false)
             alert(json.detail)
 
         }catch (error){
             console.error(error)
-            if ('detail' in json){
-                alert(json['detail'])
+            if (json){
+                let error_messages = process_errors(json)
+                setMessage(error_messages)
+                setError(false)
+                alert(error_messages)
             }
         }
 
@@ -59,20 +68,28 @@ export function Baskets(){
                 credentials : "include"
             })
             json = await response.json()
-            setMsg(json.detail)
-            //alert(json.detail)
+            setMessage([json.detail])
+            setError(true)
 
         }catch (error){
             console.error(error)
+            if (json){
+                let error_messages = process_errors(json)
+                setMessage(error_messages)
+                setError(false)
+                alert(error_messages)
+            }
         }
     }
 
     return <Authenticated>
-        <BasketContext.Provider value={[msg,setMsg]}>
+        <BasketContext.Provider value={[setMessage,setError]}>
             <button onClick={handleDel}>Empty Basket</button>
             <button onClick={placeOrder}>Order</button>
-            {msg}
-            <PaginatedView endpoint={url+"/baskets/?page=1"} msg={msg} item={(key,values)=> <div key={key}> <Basket key={key} values={values} /> </div> } />
+            <div className = {isError ? 'text-danger' : 'text-success'}>
+            <DisplayMessage messages={message}/>
+            </div>
+            <PaginatedView endpoint={url+"/baskets/?page=1"} msg={message} item={(key,values)=> <div key={key}> <Basket key={key} values={values} /> </div> } />
         </BasketContext.Provider>
     </Authenticated>
 }
@@ -80,7 +97,7 @@ export function Baskets(){
 function Basket({key,values}){
     const [cookies] = useCookies()
     const nav = useNavigate()
-    const [msg,setMsg] = useContext(BasketContext)
+    const [setMessage,setError] = useContext(BasketContext)
     const [quantity,setQuantity] = useState(0)
 
     useEffect(() => {
@@ -141,9 +158,15 @@ function Basket({key,values}){
             }
 
             alert(json.detail)
-            setMsg(json.detail)
+            setMessage([json.detail])
+            setError(true)
         }catch (error){
             console.error(error)
+            if (json){
+                let error_messages = process_errors(json)
+                setMessage(error_messages)
+                setError(true)
+            }
         }
     }
 
@@ -168,11 +191,17 @@ function Basket({key,values}){
 
             json = await response.json()
             alert(json.detail)
-            setMsg(json.detail)
+            setMessage([json.detail])
+            setError(false)
 
 
         }catch (error){
             console.error(error)
+            if (json){
+                let error_messages = process_errors(json)
+                setMessage(error_messages)
+                setError(true)
+            }
             alert(error)
         }
     }
@@ -188,7 +217,6 @@ function Basket({key,values}){
         <h2>{"Name: "+values.product.name} </h2>
         <h2>{"Price: "+formatter.format(values.product.price)}</h2>
         <h3>{"Quantity: "+values.quantity}</h3>
-        <h3>{"Type: "+values.product.type}</h3>
     </div>
     <form>
         <input type="number" name="quantity" min={0} max={99} step="1" value={quantity} onChange={handleChange}/>

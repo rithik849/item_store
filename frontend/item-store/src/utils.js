@@ -17,3 +17,17 @@ export function getHeaders(){
     }
     return header
 }
+
+export function process_errors(json){
+    let error_messages = []
+    for (let key in json){
+        console.log(key)
+        if (Array.isArray(json[key])){
+            error_messages = error_messages.concat(json[key])
+        }else{
+            error_messages.push(json[key])
+        }
+    }
+    console.log(error_messages)
+    return error_messages
+}

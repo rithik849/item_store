@@ -2,7 +2,8 @@ import { useState} from "react";
 import {NotAuthenticated, useAuth} from "../components/is_authenticated_component"
 import {url} from "../constants"
 import { useNavigate } from "react-router-dom";
-import { getHeaders } from "../utils";
+import { getHeaders, process_errors } from "../utils";
+import { DisplayMessage } from "../components/errorView";
 
 export function SignUpView(){
 
@@ -17,6 +18,7 @@ export function SignUpView(){
     })
 
     const [message,setMessage] = useState([])
+    const [isError, setError] = useState(false)
 
     async function handleSubmit(event){
         event.preventDefault();
@@ -47,55 +49,12 @@ export function SignUpView(){
 
         }catch (error){
             console.error(error)
-            let error_messages = []
-            for (let key in json){
-                console.log(json[key])
-                error_messages = error_messages.concat(json[key])
-
+            if (json){
+                let error_messages = process_errors(json)
+                setMessage(error_messages)
             }
-            console.log(error_messages)
-            setMessage(error_messages)
         }
 
-        // fetch(url+"/customers/register/",
-        //     {
-        //         method : "POST",
-        //         mode : 'cors',
-        //         headers : getHeaders(),
-        //         credentials : "include",
-        //         body : JSON.stringify({
-        //             "username" : formData.username,
-        //             "email" : formData.email,
-        //             "password" : formData.password,
-        //             "password2" : formData.password2
-        //         })
-        //     }
-        // ).then(async (response) => {
-        //     if (!response.ok){
-        //         return Promise.reject(response)
-        //     }
-        //     return response.json()
-        // }).then(async (json) => {
-        //         // const json = await response.json()
-        //         // if (response.status===200){
-        //         login(json.user)
-        //         navigate("/")
-                    
-        //         //     // alert("CSRF: " + cookies.get("csrftoken")+", SESSION: " + cookies.get("sessionid"))
-        //         // }
-        // }).catch(async (response) => {
-        //     console.log(response)
-        //     const json = await response.json()
-        //     let errors = []
-        //     for (let key in json){
-        //         console.log(json[key])
-        //         errors = errors.concat(json[key])
-
-        //     }
-        //     console.log(errors)
-        //     setMessage(errors)
-
-        // })
     }
         
     const handleChange = (event) => {
@@ -121,11 +80,9 @@ export function SignUpView(){
 
                 <button type="submit">Sign Up</button>
             </form>
-            {
-                message.map(
-                    (error,index) => <p key={index}>{error}</p>
-                )
-            }
+            <div className={isError ? 'text-danger' : 'text-success'}>
+                <DisplayMessage messages={message}/>
+            </div>
         </NotAuthenticated>
     )
 }

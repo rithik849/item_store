@@ -19,7 +19,6 @@ export function OrderItem({values}){
         <div className='item'>
             <h2>Product Name: {values.product.name}</h2>
             <h2>Price: {formatter.format(values.product.price)}</h2>
-            <h2>Type: {values.product.type}</h2>
             <h2>Quantity: {values.quantity}</h2>
         </div>
     )

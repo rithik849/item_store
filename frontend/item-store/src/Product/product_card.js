@@ -9,7 +9,6 @@ function Product({values}){
         <h2>{"Name: "+values.name} </h2>
         <h2>{"Price: "+formatter.format(values.price)}</h2>
         <h3>{"Stock: "+values.stock}</h3>
-        <h3>{"Type: "+values.type}</h3>
     </div>
     )
 }

@@ -2,7 +2,8 @@ import {useState } from "react"
 import {useAuth} from "../components/is_authenticated_component"
 import {url} from "../constants"
 import PaginatedView from "../components/paginated_component"
-import {getHeaders} from "../utils"
+import {getHeaders, process_errors} from "../utils"
+import { DisplayMessage } from "../components/errorView"
 
 export function ReviewForm(props){
 
@@ -14,6 +15,7 @@ export function ReviewForm(props){
     })
 
     const [message, setMessage] = useState([])
+    const [isError, setError ] = useState(false)
 
     async function submitHandler(event){
         event.preventDefault()
@@ -42,14 +44,11 @@ export function ReviewForm(props){
             alert('Review Submitted')
         }catch (error){
             console.error(error)
-            json = JSON.parse(error)
-            let error_messages = ""
-            for (let key in json){
-                error_messages += json[key]
-
+            if (json){
+                let error_messages = process_errors(json)
+                setMessage(error_messages)
+                setError(true)
             }
-            console.error(error_messages)
-            setMessage(error_messages.split("."))
         }
     }
 
@@ -70,11 +69,9 @@ export function ReviewForm(props){
             <input type="text" name="comment" onChange={handleChange}></input>
             <button type="submit" >Create Review</button>
         </form>
-        {
-            message.map(
-                (error,index) => <p key={index}>{error}</p>
-            )
-        }
+        <div className={isError ? 'text-danger' : 'text-success'}>
+            <DisplayMessage messages={message}/>
+        </div>
         </>
     )
 

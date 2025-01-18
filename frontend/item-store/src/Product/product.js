@@ -6,8 +6,8 @@ import { ReviewForm, Reviews } from "../Review/review_components"
 import { useParams} from "react-router-dom"
 import PaginatedView from "../components/paginated_component";
 import { useNavigate } from "react-router-dom"
-import { ErrorView } from "../components/errorView"
-import { getHeaders } from "../utils"
+import { ErrorView, DisplayMessage } from "../components/errorView"
+import { getHeaders, process_errors } from "../utils"
 
 export function Products(){
     const nav = useNavigate()
@@ -27,7 +27,7 @@ export function Products(){
 export function AddProductToBasketForm(props){
 
     const [quantity, setQuantity] = useState(0)
-    const [message,setMessage] = useState("")
+    const [message,setMessage] = useState([])
     const [error, setError] = useState(false)
 
     // Check if product is in the basket, if it is display its quantity instead of 0.
@@ -82,17 +82,20 @@ export function AddProductToBasketForm(props){
                 throw Error('Something went wrong')
             }
 
+            console.log(json)
+
             if (json['success']){
-                setMessage(json['detail'])
+                setMessage([json['detail']])
                 setError(false)
             }else{
-                setMessage(json['detail'])
+                setMessage([json['detail']])
                 setError(true)
             }
         }catch (err){
             console.error(err)
-            if ('detail' in json){
-                setMessage(json['detail'])
+            if (json){
+                let error_messages = process_errors(json)
+                setMessage(error_messages)
                 setError(true)
             }
         }
@@ -109,7 +112,9 @@ export function AddProductToBasketForm(props){
             <input type="number" name="quantity" min={0} max={99} step="1" value={quantity} onChange={handleChange}/>
             <button onClick={handleSubmit}>{"Add to Basket"}</button>
         </form>
-        <p className={error ? "text-danger" : "text-success"}>{message}</p>
+        <div className={error ? "text-danger" : "text-success"}>
+            <DisplayMessage messages={message}/>
+        </div>
         </>
     )
 }

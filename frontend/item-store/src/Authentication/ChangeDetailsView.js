@@ -1,13 +1,15 @@
 import {useState} from "react"
 import {useAuth, Authenticated} from "../components/is_authenticated_component"
 import {url} from "../constants"
-import {getHeaders} from "../utils"
+import {getHeaders, process_errors} from "../utils"
+import { DisplayMessage } from "../components/errorView"
 
 export function ChangeDetailsView(){
 
     const {user, update} = useAuth()
 
     const [message, setMessage] = useState([])
+    const [isError, setError] = useState(false)
 
     const [formData, setFormData] = useState({
         'username' : user==null ? "" : user.username,
@@ -36,58 +38,16 @@ export function ChangeDetailsView(){
                 throw Error('Something went wrong')
             }
             setMessage([json.detail])
+            setError(false)
             update(formData)
         }catch (error){
             console.error(error)
-            if (json !== undefined){
-                let error_messages = ""
-                for (let key in json.detail){
-                    error_messages += json.detail[key]
-
-                }
-                setMessage(error_messages.split("."))
+            if (json){
+                let error_messages = process_errors(json)
+                setMessage(error_messages)
+                setError(true)
             }
         }
-
-        // fetch(url+"/customers/change-details/",
-        //     {
-        //         method : "POST",
-        //         mode : 'cors',
-        //         headers : getHeaders(),
-        //         credentials : "include",
-        //         body : JSON.stringify({
-        //             "username" : formData.username,
-        //             "email" : formData.email
-        //         })
-        //     }
-        // ).then((response) => {
-        //     if (!response.ok){
-        //         return Promise.reject(response)
-        //     }
-        //     return response.json()
-        // }).then((json) => {
-        //     // if (response.status===200){
-        //     setMessage([json.detail])
-        //     update(formData)
-        //     // }else if (response.status===400){
-        //     //     let errors = ""
-        //     //     for (let key in json.detail){
-        //     //         errors += json.detail[key]
-
-        //     //     }
-        //     //     setMessage(errors.split("."))
-        //     // }
-        // }).catch(async (response) => {
-        //     if (response.headers.get("content-type") === "application/json"){
-        //         let json = await response.json()
-        //         let errors = ""
-        //         for (let key in json.detail){
-        //             errors += json.detail[key]
-
-        //         }
-        //         setMessage(errors.split("."))
-        //     }
-        // })
     }
         
     const handleChange = (event) => {
@@ -108,12 +68,8 @@ export function ChangeDetailsView(){
 
                     <button type="submit">Change Details</button>
                 </form>
-                <div>
-                {
-                message.map(
-                    (error,index) => <p key={index}>{error}</p>
-                )
-                }
+                <div className={isError ? 'text-danger' : "text-success"}>
+                    <DisplayMessage messages={message}/>
                 </div>
             </>}
         </Authenticated>
