@@ -4,7 +4,6 @@
         "pk": 1,
         "fields": {
             "name": "Book",
-            "type": "Hardcover",
             "price": 5.5,
             "stock": 460
         }
@@ -14,7 +13,6 @@
         "pk": 2,
         "fields": {
             "name": "Pen",
-            "type": "Stationery",
             "price": 3.0,
             "stock": 490
         }
@@ -24,7 +22,6 @@
         "pk": 3,
         "fields": {
             "name": "pencil",
-            "type": "Stationery",
             "price": 3.0,
             "stock": 430
         }
