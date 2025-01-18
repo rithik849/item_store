@@ -276,9 +276,17 @@ class BasketTestCase(APITestCase):
         
     def test_empty_basket(self):
         response = self.client.delete(f"/baskets/")
-        assert_print(response, response.status_code==200)
+        assert(response.status_code==200)
         json = response.json()
-        assert_print(response, json['detail'] == "All items removed from basket")
+        assert(json['detail'] == "All items removed from basket")
+        assert(Basket.objects.filter(customer__username='test').exists()==False)
+        
+    def test_empty_basket_with_no_items(self):
+        Basket.objects.all().delete()
+        response = self.client.delete(f"/baskets/")
+        assert(response.status_code==200)
+        json = response.json()
+        assert(json['detail'] == "Basket is already empty")
         assert(Basket.objects.filter(customer__username='test').exists()==False)
     
     def test_increase_current_item_in_basket(self):

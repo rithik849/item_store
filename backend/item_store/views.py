@@ -137,9 +137,13 @@ class BasketViewSet(
         if id==None:
             items = self.get_queryset()
             # Ensure delete method is called
+            if len(items) > 0:
+                detail_message = 'All items removed from basket'
+            else:
+                detail_message = 'Basket is already empty'
             for item in items:
                 item.delete()
-            return Response({"success":True, "detail": "All items removed from basket"}, status=status.HTTP_200_OK)
+            return Response({"success":True, "detail": detail_message}, status=status.HTTP_200_OK)
         user : Customer = request.user
         item : Basket = self.get_object()
         item.delete()
