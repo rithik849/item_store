@@ -1,5 +1,6 @@
 from django.contrib.auth.hashers import make_password
-from rest_framework import routers, serializers, viewsets
+from rest_framework import routers, serializers, status, viewsets
+from rest_framework.exceptions import AuthenticationFailed
 from item_store.models import Customer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 
@@ -105,25 +106,25 @@ class UpdatePasswordSerializer(BaseSerializer):
     
     
 class LogInSerializer(BaseSerializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
+    username = serializers.CharField(error_messages={'blank' : "Username can not be blank"})
+    password = serializers.CharField(error_messages={"blank" : "Password can not be blank"})
     
     class Meta:
         model = Customer
         fields = ['username','password']
     
-    # def validate(self, attrs):
-    #     user_obj = None
-    #     username = attrs['username']
-    #     password = attrs['password']
-    #     if username and password:
-    #         try:
-    #             user_obj = Customer.objects.get(username=username)
-    #             if not user_obj.check_password(password):
-    #                 raise Exception
-    #         except:
-    #             raise serializers.ValidationError('Incorrect username or password')
-        # return attrs
+    def validate(self, attrs):
+        user_obj = None
+        username = attrs['username']
+        password = attrs['password']
+        if username and password:
+            try:
+                user_obj = Customer.objects.get(username=username)
+                if not user_obj.check_password(password):
+                    raise Exception
+            except Exception as e:
+                raise AuthenticationFailed("Username and Password not found")
+        return attrs
     
 class SignUpSerializer(BaseSerializer):
     username = serializers.CharField(

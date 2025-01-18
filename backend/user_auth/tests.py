@@ -50,15 +50,16 @@ class CustomerAuthTestCase(APITestCase):
         val = self.client.login(username='test',password='testpassword123')
         assert(val==True)
         response = self.client.post('/customers/login/', data={'username':'test', 'password':'testpassword123'}, format='json')
+        assert(response.status_code==403)
         self.client.logout()
     
     def test_login_view_wrong_credentials(self):
         response = self.client.post('/customers/login/', data={'username':'test_wrong_username', 'password':'testpassword123'}, format='json')
-        assert(response.status_code==401)
+        assert(response.status_code==403)
         response = self.client.post('/customers/login/', data={'username':'test', 'password':'test_wrong_password'}, format='json')
-        assert(response.status_code==401)
+        assert(response.status_code==403)
         response = self.client.post('/customers/login/', data={'username':'test_wrong_username', 'password':'test_wrong_password'}, format='json')
-        assert(response.status_code==401)
+        assert(response.status_code==403)
     
     def test_change_details_view(self):
         val = self.client.login(username='test',password='testpassword123')
