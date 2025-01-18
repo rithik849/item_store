@@ -2,11 +2,12 @@
 import { useNavigate } from "react-router-dom"
 import { url } from "../constants"
 import PaginatedView from "../components/paginated_component";
-import { formatter } from "../utils";
+import { formatter, getHeaders } from "../utils";
 import { createContext, useContext } from "react";
 import { useCookies } from "react-cookie";
 import { useState, useEffect } from "react";
 import { Authenticated } from "../components/is_authenticated_component";
+
 // Components to view basket products and change their amounts
 
 const BasketContext = createContext()
@@ -17,72 +18,60 @@ export function Baskets(){
     const [msg,setMsg] = useState("")
 
     async function placeOrder(){
-        fetch(url+"/orders/",{
-            method : "POST",
-            mode : "cors",
-            headers : {
-                "Content-Type" : 'application/json; charset=UTF-8',
-                "Access-Control-Allow-Credentials" : true,
-                "X-CSRFToken" : cookies.csrftoken
-            },
-            credentials : "include"
-        })
-        .then(response => {
-            if (!response.ok){
-                return Promise.reject(response)
-            }
-
-            return response.json()
-        })
-        .then(json => {
-            setMsg(json)
+        let response
+        let json
+        try{
+            response = await fetch(url+"/orders/",{
+                method : "POST",
+                mode : "cors",
+                headers : {
+                    "Content-Type" : 'application/json; charset=UTF-8',
+                    "Access-Control-Allow-Credentials" : true,
+                    "X-CSRFToken" : cookies.csrftoken
+                },
+                credentials : "include"
+            })
+            json = await response.json()
+            setMsg(json.detail)
             alert(json.detail)
 
-        })
-        .catch(async (response) => {
-            console.error(response)
-            try{
-                const json = await response.json()
+        }catch (error){
+            console.error(error)
+            if ('detail' in json){
                 alert(json['detail'])
-            }catch{
-                alert('Something went wrong')
             }
-        })
+        }
+
     }
 
     async function handleDel(){
-        fetch(url+"/baskets/",{
-            method : "DELETE",
-            mode : "cors",
-            headers : {
-                "Content-Type" : 'application/json; charset=UTF-8',
-                "Access-Control-Allow-Credentials" : true,
-                "X-CSRFToken" : cookies.csrftoken
-            },
-            credentials : "include"
-        })
-        .then(response => {
-            if (!response.ok){
-                return Promise.reject(response)
-            }
+        let response
+        let json
+        try{
+            response = await fetch(url+"/baskets/",{
+                method : "DELETE",
+                mode : "cors",
+                headers : {
+                    "Content-Type" : 'application/json; charset=UTF-8',
+                    "Access-Control-Allow-Credentials" : true,
+                    "X-CSRFToken" : cookies.csrftoken
+                },
+                credentials : "include"
+            })
+            json = await response.json()
+            setMsg(json.detail)
+            //alert(json.detail)
 
-            return response.json()
-        })
-        .then(json => {
-            setMsg(json)
-            alert(json.detail)
-
-        })
-        .catch((response) => {
-            console.error(response)
-            alert('Something went wrong!')
-        })
+        }catch (error){
+            console.error(error)
+        }
     }
 
     return <Authenticated>
         <BasketContext.Provider value={[msg,setMsg]}>
             <button onClick={handleDel}>Empty Basket</button>
             <button onClick={placeOrder}>Order</button>
+            {msg}
             <PaginatedView endpoint={url+"/baskets/?page=1"} msg={msg} item={(key,values)=> <div key={key}> <Basket key={key} values={values} /> </div> } />
         </BasketContext.Provider>
     </Authenticated>
@@ -95,31 +84,29 @@ function Basket({key,values}){
     const [quantity,setQuantity] = useState(0)
 
     useEffect(() => {
-        fetch(url+"/baskets/"+values.product.id,
-            {
-                "method" : "GET",
-                mode : "cors",
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
-                credentials : "include"
-            }
-        )
-        .then(response => {
+        const fetchData = async () => {
+            let response
+            let json
+
+            response = await fetch(url+"/baskets/"+values.product.id,
+                {
+                    "method" : "GET",
+                    mode : "cors",
+                    headers : getHeaders(),
+                    credentials : "include"
+                }
+            )
+            json = await response.json()
+
             if (!response.ok){
-                return Promise.reject(response)
+                throw Error('Basket item not found')
             }
 
-            return response.json()
-        })
-        .then(json => {
-                console.log(json['quantity'])
-                setQuantity(json['quantity'])
-        })
-        .catch(response => {
-            console.error(response)
+            setQuantity(json['quantity'])
+        }
+
+        fetchData().catch((err) => {
+            console.log(err)
         })
     },[])
 
@@ -132,52 +119,62 @@ function Basket({key,values}){
         return handleClick
     }
 
-    function handleRemoveItemFromBasket(){
-        fetch(values.url,{
-            method : "DELETE",
-            mode : "cors",
-            headers : {
-                "Content-Type" : 'application/json; charset=UTF-8',
-                "Access-Control-Allow-Credentials" : true,
-                "X-CSRFToken" : cookies.csrftoken
-            },
-            credentials : "include"
-        })
-        .then(async res => {
-            const json = await res.json()
+    async function handleRemoveItemFromBasket(event){
+        event.preventDefault()
+        let response
+        let json
+        try{
+            response = await fetch(values.url,{
+                method : "DELETE",
+                mode : "cors",
+                headers : {
+                    "Content-Type" : 'application/json; charset=UTF-8',
+                    "Access-Control-Allow-Credentials" : true,
+                    "X-CSRFToken" : cookies.csrftoken
+                },
+                credentials : "include"
+            })
+            json = await response.json()
+
+            if (!response.ok){
+                throw Error('Something went wrong')
+            }
+
             alert(json.detail)
-            setMsg(json)
-        })
-        .catch((err) => {
-            console.log(err)
-            alert(err)
-        })
+            setMsg(json.detail)
+        }catch (error){
+            console.error(error)
+        }
     }
 
-    function changeItemQuantity(event){
+    async function changeItemQuantity(event){
         event.preventDefault()
-        fetch(values.url,{
-            method : "PATCH",
-            mode : "cors",
-            headers : {
-                "Content-Type" : 'application/json; charset=UTF-8',
-                "Access-Control-Allow-Credentials" : true,
-                "X-CSRFToken" : cookies.csrftoken
-            },
-            credentials : "include",
-            body:JSON.stringify({
-                "quantity" : quantity
+        let response
+        let json
+        try{
+            response = await fetch(values.url,{
+                method : "PATCH",
+                mode : "cors",
+                headers : {
+                    "Content-Type" : 'application/json; charset=UTF-8',
+                    "Access-Control-Allow-Credentials" : true,
+                    "X-CSRFToken" : cookies.csrftoken
+                },
+                credentials : "include",
+                body:JSON.stringify({
+                    "quantity" : quantity
+                })
             })
-        })
-        .then(async res => {
-            const json = await res.json()
+
+            json = await response.json()
             alert(json.detail)
-            setMsg(json)
-        })
-        .catch((err) => {
-            console.log(err)
-            alert(err)
-        })
+            setMsg(json.detail)
+
+
+        }catch (error){
+            console.error(error)
+            alert(error)
+        }
     }
 
     function handleChange(event){
