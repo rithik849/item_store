@@ -84,7 +84,7 @@ export function ReviewForm(props){
 function ReviewCard(props){
     console.log(props)
     return (
-        <div className="w-50 pb-5">
+        <div className="w-50 pb-5 border rounded">
             <h2>{props.values['customer']['username']}, {'★'.repeat(parseInt(props.values['rating']))}</h2>
             <h3>{props.values['comment']}</h3>
         </div>
@@ -92,5 +92,5 @@ function ReviewCard(props){
 }
 
 export function Reviews(props){
-    return <PaginatedView endpoint={url+"/reviews/"+props.product+"/"} displayClass={"d-flex justify-content-center align-items-center flex-column border border-primary w-100 h-50 overflow-auto"} item={(key,values) => <ReviewCard key={key} values={values}/>}/>
+    return <PaginatedView endpoint={url+"/reviews/"+props.product+"/"} displayClass={"d-flex justify-content-center align-items-center flex-column border-top border-primary h-50 overflow-scroll"} item={(key,values) => <ReviewCard key={key} values={values}/>}/>
 }

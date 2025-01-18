@@ -25,7 +25,7 @@ export function ErrorView({message}){
 export function DisplayMessage({messages}){
 
     return (
-        <ul>
+        <ul className="list-unstyled">
         {messages.map((message,idx) => <li key={idx}>{message}</li>)}
         </ul>
     )

@@ -59,18 +59,21 @@ export function ChangeDetailsView(){
         <Authenticated>
             { user &&
             <>
-                <form onSubmit={handleSubmit}>
-                    <label htmlFor="uname"><b>Username</b></label>
-                    <input type="text" placeholder="Enter Username" name="username" onChange={handleChange} value={formData.username}/>
+                <form className="d-flex justify-content-center" onSubmit={handleSubmit}>
+                    <div className="d-flex p-2 justify-content-center align-items-center flex-column bg-secondary text-white w-50 rounded">
+                        <label htmlFor="uname"><b>Username</b></label>
+                        <input type="text" placeholder="Enter Username" name="username" onChange={handleChange} value={formData.username}/>
 
-                    <label htmlFor="email"><b>Email</b></label>
-                    <input type="email" placeholder="Enter Email" name="email" onChange={handleChange} value={formData.email}/>
+                        <label htmlFor="email"><b>Email</b></label>
+                        <input type="email" placeholder="Enter Email" name="email" onChange={handleChange} value={formData.email}/>
 
-                    <button type="submit">Change Details</button>
+                        <button className={"my-4"} type="submit">Change Details</button>
+                        
+                        <div className={"border rounded bg-white " + (isError ? 'text-danger border-danger' : 'text-success border-success')}>
+                            <DisplayMessage messages={message}/>
+                        </div>
+                    </div>
                 </form>
-                <div className={isError ? 'text-danger' : "text-success"}>
-                    <DisplayMessage messages={message}/>
-                </div>
             </>}
         </Authenticated>
     )

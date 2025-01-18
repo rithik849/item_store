@@ -16,8 +16,8 @@ export function LogOutView(){
     return(
         <Authenticated>
         { 
-            <div>
-                <button onClick= {handleSubmit}>{"Log Out"}</button>
+            <div className="d-flex flex-column align-items-center">
+                <button className="btn btn-secondary text-black" onClick= {handleSubmit}>{"Log Out"}</button>
             </div>
         }
         </Authenticated>

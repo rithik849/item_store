@@ -41,6 +41,6 @@ export function Orders(){
         }
         return handleClick
     }
-    return <Authenticated><PaginatedView endpoint={url+"/orders/?page=1"} msg={""} displayClass="d-flex flex-row flex-wrap justify-content-center" item={(key,values)=> <div key={key} onClick={generateClickHandler(values)} className="border border-danger rounded px-2"> <Order values={values} /> </div> } /></Authenticated>
+    return <Authenticated><PaginatedView endpoint={url+"/orders/?page=1"} msg={""} displayClass="d-flex flex-row flex-wrap justify-content-center" item={(key,values)=> <div key={key} onClick={generateClickHandler(values)} className="border border-danger rounded px-2" > <Order values={values} /> </div> } /></Authenticated>
 
 }

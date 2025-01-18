@@ -19,7 +19,7 @@ export function Navigation(){
 
     return (
         <div>
-            <div className='d-flex justify-content-center py-3 w-100'>
+            <div className='d-flex justify-content-center py-3 w-100 bg-light mb-2'>
                 {isAuthenticated ? <p className="position-absolute start-0 text-info bg-secondary rounded px-2 h-2 justify-self-left">{username}</p> : ""}
                 <nav className="navbar nav-pills">
                     <NavLink className='nav-item navbar-item' to={"/"}>{'Home'}</NavLink>
@@ -41,7 +41,9 @@ export function Navigation(){
                     }
                 </nav>
             </div>
-            {<Outlet/>}
+            <div>
+                {<Outlet/>}
+            </div>
         </div>
 
     )

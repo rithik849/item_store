@@ -66,18 +66,20 @@ export function LogInView(){
 
     return (
         <NotAuthenticated>
-            <form onSubmit={handleSubmit}>
-                <label htmlFor="uname"><b>Username</b></label>
-                <input type="text" placeholder="Enter Username" name="username" onChange={handleChange}/>
+            <form className="d-flex justify-content-center" onSubmit={handleSubmit}>
+                <div className="d-flex p-2 justify-content-center align-items-center flex-column bg-secondary text-white w-50 rounded">
+                    <label htmlFor="uname"><b>Username</b></label>
+                    <input type="text" placeholder="Enter Username" name="username" onChange={handleChange}/>
 
-                <label htmlFor="psw"><b>Password</b></label>
-                <input type="password" placeholder="Enter Password" name="password" onChange={handleChange}/>
+                    <label htmlFor="psw"><b>Password</b></label>
+                    <input type="password" placeholder="Enter Password" name="password" onChange={handleChange}/>
 
-                <button type="submit">Login</button>
+                    <button className="btn btn-primary my-4" type="submit">Login</button>
+                    <div className={"border rounded bg-white " + (isError ? 'text-danger border-danger' : 'text-success border-success')}>
+                        <DisplayMessage messages={message}/>
+                    </div>
+                </div>
             </form>
-            <div className={isError ? "text-danger" : 'text-success'}>
-                <DisplayMessage messages={message}/>
-            </div>
         </NotAuthenticated>
     )
 }

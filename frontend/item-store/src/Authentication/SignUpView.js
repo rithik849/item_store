@@ -52,6 +52,7 @@ export function SignUpView(){
             if (json){
                 let error_messages = process_errors(json)
                 setMessage(error_messages)
+                setError(true)
             }
         }
 
@@ -65,24 +66,27 @@ export function SignUpView(){
 
     return (
         <NotAuthenticated>
-            <form onSubmit={handleSubmit}>
-                <label htmlFor="uname"><b>Username</b></label>
-                <input type="text" placeholder="Enter Username" name="username" onChange={handleChange}/>
+            <form className="d-flex justify-content-center" onSubmit={handleSubmit}>
+                <div className="d-flex p-2 justify-content-center align-items-center flex-column bg-secondary text-white w-50 rounded">
+                    <label htmlFor="uname"><b>Username</b></label>
+                    <input type="text" placeholder="Enter Username" name="username" onChange={handleChange}/>
 
-                <label htmlFor="uname"><b>E-mail</b></label>
-                <input type="text" placeholder="Enter E-mail" name="email" onChange={handleChange}/>
+                    <label htmlFor="uname"><b>E-mail</b></label>
+                    <input type="text" placeholder="Enter E-mail" name="email" onChange={handleChange}/>
 
-                <label htmlFor="password"><b>Password</b></label>
-                <input type="password" placeholder="Enter Password" name="password" onChange={handleChange}/>
+                    <label htmlFor="password"><b>Password</b></label>
+                    <input type="password" placeholder="Enter Password" name="password" onChange={handleChange}/>
 
-                <label htmlFor="confirm-password"><b>Confirm Password</b></label>
-                <input type="password" placeholder="Confirm Password" name="password2" onChange={handleChange}/>
+                    <label htmlFor="confirm-password"><b>Confirm Password</b></label>
+                    <input type="password" placeholder="Confirm Password" name="password2" onChange={handleChange}/>
 
-                <button type="submit">Sign Up</button>
+                    <button className={"btn mt-4"} type="submit">Sign Up</button>
+                    
+                    <div className={"border border-secondary rounded " + (isError ? 'text-danger' : 'text-success')}>
+                        <DisplayMessage messages={message}/>
+                    </div>
+                </div>
             </form>
-            <div className={isError ? 'text-danger' : 'text-success'}>
-                <DisplayMessage messages={message}/>
-            </div>
         </NotAuthenticated>
     )
 }

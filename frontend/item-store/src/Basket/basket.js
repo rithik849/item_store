@@ -33,17 +33,15 @@ export function Baskets(){
             if (!response.ok){
                 throw Error('Something went wrong')
             }
-            setMessage(json.detail)
+            setMessage([json.detail])
             setError(false)
-            alert(json.detail)
 
         }catch (error){
             console.error(error)
             if (json){
                 let error_messages = process_errors(json)
                 setMessage(error_messages)
-                setError(false)
-                alert(error_messages)
+                setError(true)
             }
         }
 
@@ -69,19 +67,18 @@ export function Baskets(){
                 let error_messages = process_errors(json)
                 setMessage(error_messages)
                 setError(false)
-                alert(error_messages)
             }
         }
     }
 
     return <Authenticated>
         <BasketContext.Provider value={[setMessage,setError]}>
-            <button onClick={handleDel}>Empty Basket</button>
-            <button onClick={placeOrder}>Order</button>
+            <button className="btn btn-danger" onClick={handleDel}>Empty Basket</button>
+            <button className="btn btn-primary" onClick={placeOrder}>Order</button>
             <div className = {isError ? 'text-danger' : 'text-success'}>
             <DisplayMessage messages={message}/>
             </div>
-            <PaginatedView endpoint={url+"/baskets/?page=1"} msg={message} item={(key,values)=> <div key={key}> <Basket key={key} values={values} /> </div> } />
+            <PaginatedView displayClass="d-flex flex-row flex-wrap justify-content-center" endpoint={url+"/baskets/?page=1"} msg={message} item={(key,values)=> <div className="border border-danger rounded px-2 m-2" key={key}> <Basket values={values} /> </div> } />
         </BasketContext.Provider>
     </Authenticated>
 }
@@ -90,7 +87,7 @@ function Basket({key,values}){
     const [cookies] = useCookies()
     const nav = useNavigate()
     const [setMessage,setError] = useContext(BasketContext)
-    const [quantity,setQuantity] = useState(0)
+    const [quantity,setQuantity] = useState(values.quantity)
 
     useEffect(() => {
         const controller = new AbortController();
@@ -179,6 +176,9 @@ function Basket({key,values}){
             })
 
             json = await response.json()
+            if (!response.ok){
+                throw Error('Something went wrong')
+            }
             alert(json.detail)
             setMessage([json.detail])
             setError(false)
@@ -209,9 +209,9 @@ function Basket({key,values}){
     </div>
     <form>
         <input type="number" name="quantity" min={0} max={99} step="1" value={quantity} onChange={handleChange}/>
-        <button onClick={changeItemQuantity}>{"Change Item Quantity"}</button>
+        <button className="btn border border-danger mx-2" onClick={changeItemQuantity}>{"Change Item Quantity"}</button>
     </form>
-    <button onClick={handleRemoveItemFromBasket}>Remove</button></>
+    <button className="btn border border-danger my-2" onClick={handleRemoveItemFromBasket}>Remove</button></>
     
 
 }
