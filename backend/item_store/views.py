@@ -87,7 +87,7 @@ class BasketViewSet(
     permission_classes = [IsOwnerPermission]
     
     def get_queryset(self):
-        return Basket.objects.filter(customer=self.request.user) # type: ignore
+        return Basket.objects.filter(customer=self.request.user).order_by('id') # type: ignore
     
     def get_object(self):
         queryset = self.get_queryset()
