@@ -32,8 +32,11 @@ export function AddProductToBasketForm(props){
 
     // Check if product is in the basket, if it is display its quantity instead of 0.
     useEffect(() => {
-
+        const controller = new AbortController();
+        const abort_signal = controller.signal
+        
         const fetchData = async () => {
+
             let response
             let json
 
@@ -42,6 +45,7 @@ export function AddProductToBasketForm(props){
                     "method" : "GET",
                     mode : "cors",
                     headers : getHeaders(),
+                    signal : abort_signal,
                     credentials : "include"
                 }
             )
@@ -57,6 +61,8 @@ export function AddProductToBasketForm(props){
         fetchData().catch((err) => {
             console.log(err)
         })
+
+        return () => controller.abort()
     },[props.id])
 
     async function handleSubmit(event){

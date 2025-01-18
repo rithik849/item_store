@@ -26,11 +26,7 @@ export function Baskets(){
             response = await fetch(url+"/orders/",{
                 method : "POST",
                 mode : "cors",
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
+                headers : getHeaders(),
                 credentials : "include"
             })
             json = await response.json()
@@ -60,11 +56,7 @@ export function Baskets(){
             response = await fetch(url+"/baskets/",{
                 method : "DELETE",
                 mode : "cors",
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
+                headers : getHeaders(),
                 credentials : "include"
             })
             json = await response.json()
@@ -101,6 +93,8 @@ function Basket({key,values}){
     const [quantity,setQuantity] = useState(0)
 
     useEffect(() => {
+        const controller = new AbortController();
+        const abort_signal = controller.signal
         const fetchData = async () => {
             let response
             let json
@@ -110,6 +104,7 @@ function Basket({key,values}){
                     "method" : "GET",
                     mode : "cors",
                     headers : getHeaders(),
+                    signal : abort_signal,
                     credentials : "include"
                 }
             )
@@ -125,6 +120,8 @@ function Basket({key,values}){
         fetchData().catch((err) => {
             console.log(err)
         })
+
+        return () => controller.abort()
     },[])
 
     function generateClickHandler(values){
@@ -144,11 +141,7 @@ function Basket({key,values}){
             response = await fetch(values.url,{
                 method : "DELETE",
                 mode : "cors",
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
+                headers : getHeaders(),
                 credentials : "include"
             })
             json = await response.json()
@@ -178,11 +171,7 @@ function Basket({key,values}){
             response = await fetch(values.url,{
                 method : "PATCH",
                 mode : "cors",
-                headers : {
-                    "Content-Type" : 'application/json; charset=UTF-8',
-                    "Access-Control-Allow-Credentials" : true,
-                    "X-CSRFToken" : cookies.csrftoken
-                },
+                headers : getHeaders(),
                 credentials : "include",
                 body:JSON.stringify({
                     "quantity" : quantity

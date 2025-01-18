@@ -12,6 +12,8 @@ function PaginatedView({endpoint,item,msg,displayClass}){
 
   
     useEffect(() => {
+        const controller = new AbortController();
+        const abort_signal = controller.signal
         const fetchData = async () => {
             let response
             let json
@@ -19,6 +21,7 @@ function PaginatedView({endpoint,item,msg,displayClass}){
                 method : "GET",
                 mode : "cors",
                 headers : getHeaders(),
+                signal : abort_signal,
                 credentials : "include"
             })
             json = await response.json()
@@ -32,14 +35,12 @@ function PaginatedView({endpoint,item,msg,displayClass}){
             setError(err.message)
             console.error(err)
         })  
+        return () => controller.abort()
     },[url,msg])
 
 
     if (error !== null){
-        if ('detail' in error){
-            return <ErrorView message={error['detail']}/>
-        }
-        return <ErrorView message={error.toString()}/>
+        console.log(error)
     }
 
 

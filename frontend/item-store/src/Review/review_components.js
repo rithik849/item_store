@@ -19,6 +19,8 @@ export function ReviewForm(props){
 
     async function submitHandler(event){
         event.preventDefault()
+        const controller = new AbortController();
+        const abort_signal = controller.signal
         let response
         let json
 
@@ -29,6 +31,7 @@ export function ReviewForm(props){
                     mode : 'cors',
                     headers : getHeaders(),
                     credentials : "include",
+                    signal : abort_signal,
                     body : JSON.stringify({
                         "product": props.product,
                         "comment": formData.comment,
@@ -50,6 +53,7 @@ export function ReviewForm(props){
                 setError(true)
             }
         }
+        return () => {controller.abort()}
     }
 
     const handleChange = (event) => {
