@@ -6,4 +6,8 @@ env
 .vscode
 requirements.txt
 .dockerignore
-Dockerfile
+backend/Dockerfile
+productsSQL
+.DS_Store
+run
+.zsh
