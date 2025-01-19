@@ -4,7 +4,6 @@ import { url } from "../constants"
 import PaginatedView from "../components/paginated_component";
 import { formatter, getHeaders, process_errors } from "../utils";
 import { createContext, useContext } from "react";
-import { useCookies } from "react-cookie";
 import { useState, useEffect } from "react";
 import { Authenticated } from "../components/is_authenticated_component";
 import { DisplayMessage } from "../components/errorView";
@@ -15,7 +14,6 @@ const BasketContext = createContext()
 
 export function Baskets(){
     
-    const [cookies,setCookies] = useCookies()
     const [message,setMessage] = useState([])
     const [isError,setError] = useState(false)
 
@@ -84,7 +82,6 @@ export function Baskets(){
 }
 
 function Basket({key,values}){
-    const [cookies] = useCookies()
     const nav = useNavigate()
     const [setMessage,setError] = useContext(BasketContext)
     const [quantity,setQuantity] = useState(values.quantity)
@@ -119,7 +116,7 @@ function Basket({key,values}){
         })
 
         return () => controller.abort()
-    },[])
+    },[values.product.id])
 
     function generateClickHandler(values){
         const handleClick = (event) => {

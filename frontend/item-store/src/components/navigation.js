@@ -9,7 +9,6 @@ export function Navigation(){
     const [username,setUsername] = useState("")
 
     useEffect(()=>{
-        console.log(isAuthenticated)
         if (user!==""){
             setUsername(user.username)
         }else{

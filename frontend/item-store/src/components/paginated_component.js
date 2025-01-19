@@ -1,6 +1,5 @@
 import {useState, useEffect} from "react"
 import { formatter } from "../utils";
-import { ErrorView } from "./errorView";
 import Button from 'react-bootstrap/Button'
 import { getHeaders } from "../utils";
 

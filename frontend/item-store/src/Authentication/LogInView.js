@@ -3,7 +3,6 @@ import {NotAuthenticated, useAuth} from "../components/is_authenticated_componen
 import {url} from "../constants"
 import { useNavigate } from "react-router-dom";
 import { getHeaders, process_errors } from "../utils";
-import { useCookies } from "react-cookie";
 import { DisplayMessage } from "../components/errorView";
 
 export function LogInView(){

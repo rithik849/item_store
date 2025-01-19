@@ -1,8 +1,8 @@
-import {url} from "../constants"
+import { url } from "../constants"
 import Product from "./product_card"
-import {useState, useEffect} from "react"
+import { useState, useEffect} from "react"
 import { useAuth } from "../components/is_authenticated_component"
-import { ReviewForm, Reviews, ReviewsComponent } from "../Review/review_components"
+import { ReviewsComponent } from "../Review/review_components"
 import { useParams} from "react-router-dom"
 import PaginatedView from "../components/paginated_component";
 import { useNavigate } from "react-router-dom"
