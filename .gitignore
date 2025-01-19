@@ -10,4 +10,4 @@ backend/Dockerfile
 productsSQL
 .DS_Store
 run
-.zsh
+/backend/*.zsh
