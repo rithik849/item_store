@@ -7,3 +7,5 @@ env
 requirements.txt
 .dockerignore
 Dockerfile
+productsSQL
+.DS_Store
