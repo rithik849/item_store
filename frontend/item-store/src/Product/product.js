@@ -2,7 +2,7 @@ import {url} from "../constants"
 import Product from "./product_card"
 import {useState, useEffect} from "react"
 import { useAuth } from "../components/is_authenticated_component"
-import { ReviewForm, Reviews } from "../Review/review_components"
+import { ReviewForm, Reviews, ReviewsComponent } from "../Review/review_components"
 import { useParams} from "react-router-dom"
 import PaginatedView from "../components/paginated_component";
 import { useNavigate } from "react-router-dom"
@@ -15,7 +15,7 @@ export function Products(){
     function generateClickHandler(values){
         const handleClick = (event) => {
             event.preventDefault()
-            nav("/product/"+values.id, {state : values})
+            nav("/product/"+values.id)
 
         }
         return handleClick
@@ -171,8 +171,9 @@ export function ProductDetailView(){
         <>
             <Product key={1} values={data} />
             {isAuthenticated && <AddProductToBasketForm id={params.id} />}
-            {isAuthenticated && <ReviewForm product={params.id} />}
-            <Reviews product={params.id}/>
+            {/* {isAuthenticated && <ReviewForm product={params.id} />}
+            <Reviews product={params.id}/> */}
+            <ReviewsComponent product={params.id} />
         </>
     )
 

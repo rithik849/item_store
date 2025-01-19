@@ -4,7 +4,7 @@ import { ErrorView } from "./errorView";
 import Button from 'react-bootstrap/Button'
 import { getHeaders } from "../utils";
 
-function PaginatedView({endpoint,item,msg,displayClass}){
+function PaginatedView({endpoint,item,msg,displayClass,rerender}){
 
     const [state, setState]= useState(null);
     const [url, setUrl] = useState(endpoint)
@@ -36,7 +36,7 @@ function PaginatedView({endpoint,item,msg,displayClass}){
             console.error(err)
         })  
         return () => controller.abort()
-    },[url,msg])
+    },[url,msg,rerender])
 
 
     if (error !== null){

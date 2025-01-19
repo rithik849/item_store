@@ -1,4 +1,4 @@
-import {useState } from "react"
+import {useState, useEffect ,useRef } from "react"
 import {useAuth} from "../components/is_authenticated_component"
 import {url} from "../constants"
 import PaginatedView from "../components/paginated_component"
@@ -45,6 +45,7 @@ export function ReviewForm(props){
                 throw Error(JSON.stringify(json))
             }
             alert('Review Submitted')
+            props.submitted(true)
         }catch (error){
             console.error(error)
             if (json){
@@ -92,5 +93,18 @@ function ReviewCard(props){
 }
 
 export function Reviews(props){
-    return <PaginatedView endpoint={url+"/reviews/"+props.product+"/"} displayClass={"d-flex justify-content-center align-items-center flex-column border-top border-primary h-50 overflow-scroll"} item={(key,values) => <ReviewCard key={key} values={values}/>}/>
+
+    return <PaginatedView rerender={props.rerender} endpoint={url+"/reviews/"+props.product+"/"} displayClass={"d-flex justify-content-center align-items-center flex-column border-top border-primary h-50 overflow-scroll"} item={(key,values) => <ReviewCard key={key} values={values}/>}/>
+}
+
+export function ReviewsComponent({product}){
+    const [rerender, setRerender] = useState(false)
+    const {isAuthenticated} = useAuth()
+
+    return (
+        <>
+            {isAuthenticated && <ReviewForm product={product} submitted={setRerender}/>}
+            <Reviews rerender={rerender} product={product}/>
+        </>
+    )
 }
