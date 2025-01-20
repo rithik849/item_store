@@ -74,7 +74,7 @@ export function LogInView(){
                     <input type="password" placeholder="Enter Password" name="password" onChange={handleChange}/>
 
                     <button className="btn btn-primary my-4" type="submit">Login</button>
-                    <div className={"border rounded bg-white " + (isError ? 'text-danger border-danger' : 'text-success border-success')}>
+                    <div className={"border rounded bg-white " + (isError ? 'text-danger' : 'text-success')}>
                         <DisplayMessage messages={message}/>
                     </div>
                 </div>
