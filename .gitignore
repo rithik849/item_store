@@ -13,3 +13,4 @@ productsSQL
 run
 /backend/*.zsh
 /frontend/*.zsh
+db
