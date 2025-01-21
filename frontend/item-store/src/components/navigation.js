@@ -14,7 +14,7 @@ export function Navigation(){
         }else{
             setUsername("")
         }
-    },[user.username,user.email])
+    },[user,user.username,user.email])
 
     return (
         <div>
