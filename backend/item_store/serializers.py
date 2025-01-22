@@ -81,6 +81,10 @@ class CreateReviewSerializer(serializers.ModelSerializer):
                 message="Customer already has a review for this product."
             )
         ]
+        extra_kwargs = {
+            'comment' : {'error_messages' : {'blank': "Please provide a comment about the product."} },
+            'rating' : {'error_messages' : {'blank': "Please provide a valid rating for the product."} }
+        }
         
     def validate(self,data):
         has_review = Review.objects.filter(customer=data['customer'], product=data['product']).exists()
