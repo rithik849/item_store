@@ -7,7 +7,6 @@ env
 requirements.txt
 .dockerignore
 backend/Dockerfile
-docker-compose.yaml
 productsSQL
 .DS_Store
 run
