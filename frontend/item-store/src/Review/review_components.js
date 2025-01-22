@@ -68,11 +68,13 @@ export function ReviewForm(props){
         isAuthenticated && 
         <>
         <form onSubmit={submitHandler}>
-            <label>Rating</label>
-            <input type="number" name="rating" min="1" max="5" onChange={handleChange}></input>
-            <label>Review</label>
-            <input type="text" name="comment" onChange={handleChange}></input>
-            <button type="submit" >Create Review</button>
+            <div className="d-flex flex-column align-items-start bg-info ps-3 input group input-group-lg">
+                <label className="fw-bold">Rating</label>
+                <input type="number" name="rating" min="1" max="5" onChange={handleChange}></input>
+                <label className="fw-bold">Review</label>
+                <input className="input-group-text" type="text" name="comment" onChange={handleChange}></input>
+                <button type="submit" className="btn border border-info my-2 bg-primary">Create Review</button>
+            </div>
         </form>
         <div className={isError ? 'text-danger' : 'text-success'}>
             <DisplayMessage messages={message}/>

@@ -115,8 +115,8 @@ export function AddProductToBasketForm(props){
     return (
         <>
         <form>
-            <input type="number" name="quantity" min={0} max={99} step="1" value={quantity} onChange={handleChange}/>
-            <button onClick={handleSubmit}>{"Add to Basket"}</button>
+            <input className="ms-3" type="number" name="quantity" min={0} max={99} step="1" value={quantity} onChange={handleChange}/>
+            <button className="btn btn-secondary ms-3" onClick={handleSubmit}>{"Add to Basket"}</button>
         </form>
         <div className={error ? "text-danger" : "text-success"}>
             <DisplayMessage messages={message}/>
