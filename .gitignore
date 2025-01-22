@@ -13,5 +13,6 @@ productsSQL
 run
 /backend/*.zsh
 /frontend/*.zsh
-db
+db_volume/data/*
+!db_volume/data/.gitkeep
 /backend/static
